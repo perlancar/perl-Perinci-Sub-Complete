@@ -194,6 +194,7 @@ sub bash_complete_spec_arg {
             if (defined($args->{$_}) && $args->{$_} eq $uuid) {
                 $arg = $_;
                 $which = 'value';
+                $args->{$_} = undef;
                 last;
             }
         }
