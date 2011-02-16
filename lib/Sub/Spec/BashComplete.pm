@@ -198,7 +198,10 @@ sub bash_complete_spec_arg {
             }
         }
     }
-    if ($which ne 'value' && $word =~ /^--([\w-]+)=(.*)/) {
+    if ($which eq 'value' && $word =~ /^-/) {
+        # user indicates he wants to complete arg name
+        $which = 'name';
+    } elsif ($which ne 'value' && $word =~ /^--([\w-]+)=(.*)/) {
         $arg = $1;
         $words->[$cword] = $2;
         $which = 'value';

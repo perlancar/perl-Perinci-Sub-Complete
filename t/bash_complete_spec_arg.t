@@ -80,6 +80,13 @@ test_complete(
     result      => [qw(foo bar baz str)],
 );
 test_complete(
+    name        => 'complete arg name instead of value when user type -',
+    spec        => $spec,
+    comp_line   => 'CMD --bool1 --str2 -',
+    comp_point0 => '                    ^',
+    result      => [qw(--bool2 --nobool2 --str1)],
+);
+test_complete(
     name        => 'complete arg value (spec "in")',
     spec        => $spec,
     comp_line   => 'CMD --bool1 --str2 ba',
