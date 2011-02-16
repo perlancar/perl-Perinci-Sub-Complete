@@ -84,7 +84,7 @@ test_complete(
     spec        => $spec,
     comp_line   => 'CMD --bool1 --str2 -',
     comp_point0 => '                    ^',
-    result      => [qw(--bool2 --nobool2 --str1)],
+    result      => [qw(--bool2 --nobool2 --str1 --str2)],
 );
 test_complete(
     name        => 'complete arg value (spec "in")',
