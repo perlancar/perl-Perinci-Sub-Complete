@@ -1,4 +1,9 @@
-Revision history for Sub::Spec::BashCompletion
+Revision history for Sub::Spec::BashComplete
+
+0.01     2011-02-16
+
+         Fix dependency version (requires Sub::Spec::CmdLine 0.10+).
+
 
 0.01     2011-02-16
 
