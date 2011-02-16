@@ -326,11 +326,11 @@ Options:
 
 =over 4
 
-=item f => BOOL (default 1)
+=item * f => BOOL (default 1)
 
 If set to 0, will not complete files, only directories.
 
-=item d => BOOL (default 1)
+=item * d => BOOL (default 1)
 
 If set to 0, will not complete directories, only files.
 
