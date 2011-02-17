@@ -203,10 +203,12 @@ sub bash_complete_spec_arg {
     # complete arg name or arg value.
     my $which = 'name';
     my $arg;
+    my $remaining_words = [@$words];
     {
         my $uuid = UUID::Random::generate();
-        local $words->[$cword] = $uuid;
-        $args = Sub::Spec::CmdLine::parse_argv([@$words], $spec, {strict=>0});
+        local $remaining_words->[$cword] = $uuid;
+        $args = Sub::Spec::CmdLine::parse_argv(
+            $remaining_words, $spec, {strict=>0});
         for (keys %$args) {
             if (defined($args->{$_}) && $args->{$_} eq $uuid) {
                 $arg = $_;
@@ -225,6 +227,29 @@ sub bash_complete_spec_arg {
         $which = 'value';
     }
     $log->tracef("we should complete arg $which, arg=%s, word=%s", $arg, $word);
+
+    if ($opts->{custom_completer}) {
+        $log->tracef("custom_completer option is specified, will use it");
+        # custom_completer can decline by returning (undef) (that is, a
+        # 1-element list containing undef)
+        my @res = $opts->{custom_completer}->(
+            which => $which,
+            words => $words,
+            cword => $cword,
+            word  => $word,
+            parent_args => $args,
+            spec  => $spec,
+            opts  => $opts,
+            remaining_words => $remaining_words,
+        );
+        if (@res==1 && !defined($res[0])) {
+            $log->tracef("custom_completer declined, will continue without");
+        } else {
+            my @res = _complete_array($word, \@res);
+            $log->tracef("result from custom_completer: %s", \@res);
+            return @res;
+        }
+    }
 
     if ($which eq 'value') {
         my $arg_spec = $args_spec->{$arg};
@@ -273,19 +298,23 @@ sub bash_complete_spec_arg {
         my @completeable_args;
         for (sort keys %$args_spec) {
             my $a = $_; $a =~ s/^--//;
-            next if defined($args->{$a});
+            my @w;
             if ($args_spec->{$_}{type} eq 'bool') {
-                push @completeable_args, "--$_", "--no$_";
+                @w = ("--$_", "--no$_");
             } else {
-                push @completeable_args, "--$_";
+                @w = ("--$_");
             }
             my $aliases = $args_spec->{$_}{attr_hashes}[0]{cmdline_aliases};
             if ($aliases) {
                 while (my ($al, $alinfo) = each %$aliases) {
-                    push @completeable_args,
+                    push @w,
                         (length($al) == 1 ? "-$al" : "--$al");
                 }
             }
+            # skip displaying --foo if already mentioned, except when current
+            # word
+            next if defined($args->{$a}) && !($word ~~ @w);
+            push @completeable_args, @w;
         }
         $log->tracef("completeable_args = %s", \@completeable_args);
 

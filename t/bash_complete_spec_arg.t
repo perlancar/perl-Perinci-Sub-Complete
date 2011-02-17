@@ -196,6 +196,23 @@ test_complete(
     result      => [qw(--str3)],
 );
 
+test_complete(
+    name        => 'custom_completer (decline)',
+    spec        => $spec2,
+    opts        => {custom_completer=>sub {return (undef) }},
+    comp_line   => 'CMD a e -',
+    comp_point0 => '         ^',
+    result      => [qw(--str3)],
+);
+test_complete(
+    name        => 'custom_completer',
+    spec        => $spec2,
+    opts        => {custom_completer=>sub {return ("-a", "-b")}},
+    comp_line   => 'CMD a e -',
+    comp_point0 => '         ^',
+    result      => [qw(-a -b)],
+);
+
 # XXX test ENV
 # XXX test fallback arg value to file
 done_testing();
