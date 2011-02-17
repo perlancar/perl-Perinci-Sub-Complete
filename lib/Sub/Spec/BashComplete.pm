@@ -17,7 +17,8 @@ our @EXPORT_OK = qw(
                        bash_complete_spec_arg
                );
 
-# borrowed from Getopt::Complete
+# borrowed from Getopt::Complete. current problems: '$foo' disappears because
+# shell will substitute it.
 sub _line_to_argv {
     require IPC::Open2;
 
@@ -187,7 +188,10 @@ sub bash_complete_spec_arg {
     my $word = $words->[$cword] // "";
     $log->tracef("words=%s, cword=%d, word=%s", $words, $cword, $word);
 
-    return complete_env($word) if $word =~ /^\$/;
+    if ($word =~ /^\$/) {
+        $log->tracef("word begins with \$, completing env vars");
+        return complete_env($word);
+    }
 
     my $args_spec = $spec->{args};
     $args_spec    = {
