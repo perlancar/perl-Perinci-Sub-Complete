@@ -79,6 +79,14 @@ sub _parse_request {
     $res;
 }
 
+sub _addslashes {
+    my ($a) = @_;
+    $a =~ s/([^A-Za-z0-9,+._-])/\\$1/g;
+    $a;
+}
+
+# all completion routine should eventually call _complete_array, since it is the
+# one doing the output escaping
 sub _complete_array {
     my ($word, $arrayref, $opts) = @_;
     $log->tracef("-> _complete_array(), word=%s, array=%s", $word, $arrayref);
@@ -86,8 +94,12 @@ sub _complete_array {
     $opts //= {};
 
     my $wordu = uc($word);
-    grep { ($opts->{ci} ? index(uc($_), $wordu) : index($_, $word)) == 0 }
-        @$arrayref;
+    my @res;
+    for (@$arrayref) {
+        next unless 0==($opts->{ci} ? index(uc($_), $wordu):index($_, $word));
+        push @res, _addslashes($_);
+    }
+    @res;
 }
 
 sub _complete_hash_key {
@@ -96,11 +108,7 @@ sub _complete_hash_key {
     $word //= "";
     $opts //= {};
 
-    #$log->tracef("word=%s, hashref=%s, opts=%s", $word, $hashref, $opts);
-
-    my $wordu = uc($word);
-    grep { ($opts->{ci} ? index(uc($_), $wordu) : index($_, $word)) == 0 }
-        keys %$hashref;
+    _complete_array($word, [keys %$hashref], $opts);
 }
 
 sub complete_env {
@@ -109,7 +117,7 @@ sub complete_env {
     if ($word =~ /^\$/) {
         _complete_array($word, [map {"\$$_"} keys %ENV], $opts);
     } else {
-        _complete_hash_key($word, \%ENV, $opts);
+        _complete_array($word, [keys %ENV], $opts);
     }
 }
 
@@ -139,7 +147,7 @@ sub complete_program {
         };
     }
 
-    List::MoreUtils::uniq(@res);
+    _complete_array("", [List::MoreUtils::uniq(@res)]);
 }
 
 sub complete_file {
@@ -161,7 +169,7 @@ sub complete_file {
         push @res, (-d _) ? "$_/" : $_;
     }
 
-    @res;
+    _complete_array("", \@res);
 }
 
 sub complete_subcommand {
@@ -254,6 +262,7 @@ sub bash_complete_spec_arg {
     }
 
     if ($which eq 'value') {
+
         my $arg_spec = $args_spec->{$arg};
         return () unless $arg_spec; # unknown arg? should not happen
 
@@ -296,7 +305,10 @@ sub bash_complete_spec_arg {
         # fallback
         $log->tracef("completing arg value from file (fallback)");
         return complete_file($word);
+
     } elsif ($word eq '' || $word =~ /^--?/) {
+        # which eq 'name'
+
         my @completeable_args;
         for (sort keys %$args_spec) {
             my $a = $_; $a =~ s/^--//;
