@@ -104,7 +104,7 @@ sub complete_env {
     my ($word, $opts) = @_;
     $word //= "";
     if ($word =~ /^\$/) {
-        _complete_array($word, [map {"\$_"} keys %ENV], $opts);
+        _complete_array($word, [map {"\$$_"} keys %ENV], $opts);
     } else {
         _complete_hash_key($word, \%ENV, $opts);
     }
