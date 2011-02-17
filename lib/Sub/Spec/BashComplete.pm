@@ -44,8 +44,11 @@ sub _line_to_argv {
 # parse COMP_LINE and COMP_POINT
 sub _parse_request {
     my ($line, $point) = @_;
+    $log->tracef("-> _parse_request(%s, %s)", $line, $point);
+
     $line  //= $ENV{COMP_LINE};
     $point //= $ENV{COMP_POINT};
+    $log->tracef("line=%s, point=%s", $line, $point);
 
     my $left  = substr($line, 0, $point);
     my @left;
@@ -65,7 +68,9 @@ sub _parse_request {
     my $cword = @left ? scalar(@left)-1 : 0;
     $cword++ if $left =~ /\s$/; # XXX doesn't consider shell quoting
 
-    {words => $words, cword => $cword};
+    my $res = {words => $words, cword => $cword};
+    $log->tracef("<- _parse_request, result=%s", $res);
+    $res;
 }
 
 sub _complete_array {
@@ -161,6 +166,7 @@ sub bash_complete_spec_arg {
 
     my ($spec, $opts) = @_;
     $opts //= {};
+    $log->tracef("-> bash_complete_spec_arg, opts=%s", $opts);
 
     my ($words, $cword);
     if ($opts->{words}) {
