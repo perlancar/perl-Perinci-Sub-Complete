@@ -48,12 +48,15 @@ sub _parse_request {
 
     $line  //= $ENV{COMP_LINE};
     $point //= $ENV{COMP_POINT};
-    $log->tracef("line=%s, point=%s", $line, $point);
+    $log->tracef("line=q(%s), point=%s", $line, $point);
 
     my $left  = substr($line, 0, $point);
     my @left;
     if (length($left)) {
         @left = _line_to_argv($left);
+        # shave off $0
+        substr($left, 0, length($left[0])) = "";
+        $left =~ s/^\s+//;
         shift @left;
     }
 
@@ -63,6 +66,8 @@ sub _parse_request {
         $right =~ s/^\S+//;
         @right = _line_to_argv($right) if length($right);
     }
+    $log->tracef("left=q(%s), \@left=%s, right=q(%s), \@right=%s",
+                 $left, \@left, $right, \@right);
 
     my $words = [@left, @right],
     my $cword = @left ? scalar(@left)-1 : 0;

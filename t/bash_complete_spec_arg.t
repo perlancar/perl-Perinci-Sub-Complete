@@ -138,6 +138,64 @@ test_complete(
     comp_point0 => '           ^',
     result      => [qw(a b c)],
 );
+
+my $spec2 = {
+    args => {
+        str1  => ["str*"  => {arg_pos=>0, in=>[qw/a b c d/]}],
+        str2  => [str     => {arg_pos=>1, in=>[qw/e f g h/]}],
+        str3  => [str     => {arg_pos=>2, in=>[qw/i j k l/]}],
+    },
+};
+test_complete(
+    name        => 'complete arg value, arg_pos (1)',
+    spec        => $spec2,
+    comp_line   => 'CMD ',
+    comp_point0 => '    ^',
+    result      => [qw(a b c d)],
+);
+test_complete(
+    name        => 'complete arg value, arg_pos (1b)',
+    spec        => $spec2,
+    comp_line   => 'CMD a',
+    comp_point0 => '     ^',
+    result      => [qw(a)],
+);
+test_complete(
+    name        => 'complete arg value, arg_pos (2)',
+    spec        => $spec2,
+    comp_line   => 'CMD a ',
+    comp_point0 => '      ^',
+    result      => [qw(e f g h)],
+);
+test_complete(
+    name        => 'complete arg value, arg_pos (2b)',
+    spec        => $spec2,
+    comp_line   => 'CMD a f',
+    comp_point0 => '       ^',
+    result      => [qw(f)],
+);
+test_complete(
+    name        => 'complete arg value, arg_pos (3)',
+    spec        => $spec2,
+    comp_line   => 'CMD a e ',
+    comp_point0 => '        ^',
+    result      => [qw(i j k l)],
+);
+test_complete(
+    name        => 'complete arg value, arg_pos (3b)',
+    spec        => $spec2,
+    comp_line   => 'CMD a e j',
+    comp_point0 => '         ^',
+    result      => [qw(j)],
+);
+test_complete(
+    name        => 'complete arg value, arg_pos mixed with --opt',
+    spec        => $spec2,
+    comp_line   => 'CMD a e -',
+    comp_point0 => '         ^',
+    result      => [qw(--str3)],
+);
+
 # XXX test ENV
 # XXX test fallback arg value to file
 done_testing();
