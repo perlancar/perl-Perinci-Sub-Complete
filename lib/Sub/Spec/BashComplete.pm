@@ -103,9 +103,11 @@ sub _complete_hash_key {
 sub complete_env {
     my ($word, $opts) = @_;
     $word //= "";
-    $word =~ s/^\$//;
-
-    _complete_hash_key($word, \%ENV, $opts);
+    if ($word =~ /^\$/) {
+        _complete_array($word, [map {"\$_"} keys %ENV], $opts);
+    } else {
+        _complete_hash_key($word, \%ENV, $opts);
+    }
 }
 
 sub complete_program {
