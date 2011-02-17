@@ -81,6 +81,7 @@ sub _parse_request {
 
 sub _complete_array {
     my ($word, $arrayref, $opts) = @_;
+    $log->tracef("-> _complete_array(), word=%s, array=%s", $word, $arrayref);
     $word //= "";
     $opts //= {};
 
@@ -91,6 +92,7 @@ sub _complete_array {
 
 sub _complete_hash_key {
     my ($word, $hashref, $opts) = @_;
+    $log->tracef("-> _complete_hash_key(), word=%s, hash=%s", $word, $hashref);
     $word //= "";
     $opts //= {};
 
