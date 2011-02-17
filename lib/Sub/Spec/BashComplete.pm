@@ -273,6 +273,13 @@ sub bash_complete_spec_arg {
             } else {
                 push @completeable_args, "--$_";
             }
+            my $aliases = $args_spec->{$_}{attr_hashes}[0]{cmdline_aliases};
+            if ($aliases) {
+                while (my ($al, $alinfo) = each %$aliases) {
+                    push @completeable_args,
+                        (length($al) == 1 ? "-$al" : "--$al");
+                }
+            }
         }
         $log->tracef("completeable_args = %s", \@completeable_args);
 
