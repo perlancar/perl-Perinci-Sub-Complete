@@ -319,7 +319,7 @@ sub bash_complete_spec_arg {
             } else {
                 @w = ("--$_");
             }
-            my $aliases = $args_spec->{$_}{attr_hashes}[0]{cmdline_aliases};
+            my $aliases = $args_spec->{$_}{attr_hashes}[0]{arg_aliases};
             if ($aliases) {
                 while (my ($al, $alinfo) = each %$aliases) {
                     push @w,
