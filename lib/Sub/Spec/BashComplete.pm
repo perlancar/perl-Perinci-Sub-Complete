@@ -79,14 +79,12 @@ sub _parse_request {
     $res;
 }
 
-sub _addslashes {
+sub _add_slashes {
     my ($a) = @_;
     $a =~ s!([^A-Za-z0-9,+._/-])!\\$1!g;
     $a;
 }
 
-# all completion routine should eventually call _complete_array, since it is the
-# one doing the output escaping
 sub _complete_array {
     my ($word, $arrayref, $opts) = @_;
     $log->tracef("-> _complete_array(), word=%s, array=%s", $word, $arrayref);
@@ -97,7 +95,7 @@ sub _complete_array {
     my @res;
     for (@$arrayref) {
         next unless 0==($opts->{ci} ? index(uc($_), $wordu):index($_, $word));
-        push @res, _addslashes($_);
+        push @res, $_;
     }
     @res;
 }
