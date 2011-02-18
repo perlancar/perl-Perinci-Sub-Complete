@@ -243,10 +243,12 @@ sub bash_complete_spec_arg {
         $log->tracef("custom_completer option is specified, will use it");
         # custom_completer can decline by returning (undef) (that is, a
         # 1-element list containing undef)
+        my $newcword = $cword - (@$words - @$remaining_words);
+        $newcword = 0 if $newcword < 0;
         my @res = $opts->{custom_completer}->(
             which => $which,
             words => $words,
-            cword => $cword - (@$words - @$remaining_words),
+            cword => $newcword,
             word  => $word,
             parent_args => $args,
             spec  => $spec,
