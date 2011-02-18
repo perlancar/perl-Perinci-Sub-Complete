@@ -1,5 +1,12 @@
 Revision history for Sub::Spec::BashComplete
 
+0.08     2011-02-18
+
+         Backslash-escape output.
+
+         Spec: cmdline_aliases renamed to arg_aliases.
+
+
 0.07     2011-02-17
 
          bash_complete_spec_arg(): Also add --nofoo completion for bool
