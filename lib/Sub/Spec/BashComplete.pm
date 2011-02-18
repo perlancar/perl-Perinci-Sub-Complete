@@ -86,7 +86,8 @@ sub _parse_request {
     my $tmp = $left;
     my $nspc_left = 0; $nspc_left++ while $tmp =~ s/\s$//;
     $tmp = $left[-1];
-    my $nspc_lastw = 0; $nspc_lastw++ while $tmp =~ s/\s$//;
+    my $nspc_lastw = 0;
+    if (defined($tmp)) { $nspc_lastw++ while $tmp =~ s/\s$// }
     $cword++ if $nspc_lastw < $nspc_left;
 
     my $res = {words => $words, cword => $cword};
