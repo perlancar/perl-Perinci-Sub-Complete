@@ -214,20 +214,23 @@ sub bash_complete_spec_arg {
     my $which = 'name';
     my $arg;
     my $remaining_words = [@$words];
-    {
-        my $uuid = UUID::Random::generate();
-        local $remaining_words->[$cword] = $uuid;
-        $args = Sub::Spec::CmdLine::parse_argv(
-            $remaining_words, $spec, {strict=>0});
-        for (keys %$args) {
-            if (defined($args->{$_}) && $args->{$_} eq $uuid) {
-                $arg = $_;
-                $which = 'value';
-                $args->{$_} = undef;
-                last;
-            }
+
+    my $uuid = UUID::Random::generate();
+    $remaining_words->[$cword] = $uuid;
+    $args = Sub::Spec::CmdLine::parse_argv(
+        $remaining_words, $spec, {strict=>0});
+    for (keys %$args) {
+        if (defined($args->{$_}) && $args->{$_} eq $uuid) {
+            $arg = $_;
+            $which = 'value';
+            $args->{$_} = undef;
+            last;
         }
     }
+    for (@$remaining_words) { $_ = undef if defined($_) && $_ eq $uuid }
+    pop @$remaining_words
+        while (@$remaining_words && !defined($remaining_words->[-1]));
+
     if ($which eq 'value' && $word =~ /^-/) {
         # user indicates he wants to complete arg name
         $which = 'name';
@@ -245,7 +248,7 @@ sub bash_complete_spec_arg {
         my @res = $opts->{custom_completer}->(
             which => $which,
             words => $words,
-            cword => $cword,
+            cword => $cword - (@$words - @$remaining_words),
             word  => $word,
             parent_args => $args,
             spec  => $spec,
