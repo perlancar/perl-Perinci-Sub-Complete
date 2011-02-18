@@ -27,13 +27,13 @@ test_complete(
     spec        => $spec,
     comp_line   => 'CMD ',
     comp_point0 => '    ^',
-    result      => [qw(--help -h -? --bool1 --nobool1 --bool2 --nobool2 --str1 --str2)],
+    result      => [qw(--help -h -\\? --bool1 --nobool1 --bool2 --nobool2 --str1 --str2)],
 );
 test_complete(
     spec        => $spec,
     comp_line   => 'CMD -',
     comp_point0 => '     ^',
-    result      => [qw(--help -h -? --bool1 --nobool1 --bool2 --nobool2 --str1 --str2)],
+    result      => [qw(--help -h -\\? --bool1 --nobool1 --bool2 --nobool2 --str1 --str2)],
 );
 test_complete(
     spec        => $spec,
