@@ -97,7 +97,7 @@ sub _parse_request {
 
 sub _add_slashes {
     my ($a) = @_;
-    $a =~ s!([^A-Za-z0-9,+._/-])!\\$1!g;
+    $a =~ s!([^A-Za-z0-9,+._/:-])!\\$1!g;
     $a;
 }
 
