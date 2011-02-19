@@ -1,5 +1,13 @@
 Revision history for Sub::Spec::BashComplete
 
+0.10     2011-02-19
+
+         Incompatible change: arg_complete & custom_completer now expected to
+         return arrayref instead of list.
+
+         More fixes for remaining_words for custom_completer.
+
+
 0.09     2011-02-18
 
          Handle backspaced whitespace.
