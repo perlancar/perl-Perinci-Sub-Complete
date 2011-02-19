@@ -11,7 +11,7 @@ use Sub::Spec::BashComplete qw(bash_complete_spec_arg);
 
 my $arg_complete = sub {
     my (%args) = @_;
-    qw(apple apricot cherry cranberry);
+    [qw(apple apricot cherry cranberry)];
 };
 
 my $spec = {
@@ -199,7 +199,7 @@ test_complete(
 test_complete(
     name        => 'custom_completer (decline)',
     spec        => $spec2,
-    opts        => {custom_completer=>sub {return (undef) }},
+    opts        => {custom_completer=>sub {return [undef] }},
     comp_line   => 'CMD a e -',
     comp_point0 => '         ^',
     result      => [qw(--str3)],
@@ -207,7 +207,7 @@ test_complete(
 test_complete(
     name        => 'custom_completer',
     spec        => $spec2,
-    opts        => {custom_completer=>sub {return ("-a", "-b")}},
+    opts        => {custom_completer=>sub {return ["-a", "-b"]}},
     comp_line   => 'CMD a e -',
     comp_point0 => '         ^',
     result      => [qw(-a -b)],
