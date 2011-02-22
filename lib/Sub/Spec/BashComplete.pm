@@ -17,6 +17,12 @@ our @EXPORT_OK = qw(
                        bash_complete_spec_arg
                );
 
+use Sub::Spec::Utils; # tmp, for _parse_schema
+
+sub _parse_schema {
+    Sub::Spec::Utils::_parse_schema(@_);
+}
+
 # borrowed from Getopt::Complete. current problems: 1) '$foo' disappears because
 # shell will substitute it. 2) can't parse if closing quotes have not been
 # supplied (e.g. spanel get-plan "BISNIS A<tab>). at least it works with
@@ -219,7 +225,7 @@ sub bash_complete_spec_arg {
 
     my $args_spec = $spec->{args};
     $args_spec    = {
-        map { $_ => Sub::Spec::CmdLine::_parse_schema($args_spec->{$_}) }
+        map { $_ => _parse_schema($args_spec->{$_}) }
             keys %$args_spec };
     my $args;
 
