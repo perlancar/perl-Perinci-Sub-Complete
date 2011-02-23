@@ -1,8 +1,13 @@
 Revision history for Sub::Spec::BashComplete
 
+0.13     2011-02-23
+
+         Add missing dependency: Log::Any [CT].
+
+
 0.12     2011-02-23
 
-         Add missing dependency [CT].
+         Add missing dependency: Sub::Spec::CmdLine [CT].
 
 
 0.11     2011-02-22
