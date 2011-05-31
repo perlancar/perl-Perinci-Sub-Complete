@@ -1,5 +1,14 @@
 Revision history for Sub::Spec::BashComplete
 
+0.14     2011-05-31
+
+         No functional changes.
+
+         [ETC]
+
+         - Skip tests on systems which don't have bash.
+
+
 0.13     2011-02-23
 
          Add missing dependency: Log::Any [CT].
