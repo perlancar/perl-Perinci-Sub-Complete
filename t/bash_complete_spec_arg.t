@@ -5,9 +5,11 @@ use strict;
 use warnings;
 #use Log::Any '$log';
 
+use File::Which qw(which);
 use Test::More;
-
 use Sub::Spec::BashComplete qw(bash_complete_spec_arg);
+
+plan skip_all => "bash is not available on this system" unless which("bash");
 
 my $arg_complete = sub {
     my (%args) = @_;
