@@ -1,10 +1,11 @@
 package Sub::Spec::BashComplete;
-# ABSTRACT: Provide bash completion for Sub::Spec::CmdLine programs
 
 use 5.010;
 use strict;
 use warnings;
 use Log::Any '$log';
+
+# VERSION
 
 require Exporter;
 our @ISA       = qw(Exporter);
@@ -388,6 +389,7 @@ sub bash_complete_spec_arg {
 }
 
 1;
+# ABSTRACT: Provide bash completion for Sub::Spec::CmdLine programs
 __END__
 
 =head1 SYNOPSIS
