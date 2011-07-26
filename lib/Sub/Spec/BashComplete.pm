@@ -239,7 +239,7 @@ sub bash_complete_spec_arg {
     my $uuid = UUID::Random::generate();
     my $orig_word = $remaining_words->[$cword];
     $remaining_words->[$cword] = $uuid;
-    $args = Sub::Spec::GetArgs::Argv::parse_args_from_argv(
+    $args = Sub::Spec::GetArgs::Argv::get_args_from_argv(
         argv=>$remaining_words, spec=>$spec, strict=>0);
     for (keys %$args) {
         if (defined($args->{$_}) && $args->{$_} eq $uuid) {
