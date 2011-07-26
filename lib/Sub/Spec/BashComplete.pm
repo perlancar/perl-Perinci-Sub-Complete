@@ -199,7 +199,7 @@ sub complete_subcommand {
 }
 
 sub bash_complete_spec_arg {
-    require Sub::Spec::CmdLine;
+    require Sub::Spec::GetArgs::Argv;
     require UUID::Random;
 
     my ($spec, $opts) = @_;
@@ -238,8 +238,8 @@ sub bash_complete_spec_arg {
     my $uuid = UUID::Random::generate();
     my $orig_word = $remaining_words->[$cword];
     $remaining_words->[$cword] = $uuid;
-    $args = Sub::Spec::CmdLine::parse_argv(
-        $remaining_words, $spec, {strict=>0});
+    $args = Sub::Spec::GetArgs::Argv::parse_args_from_argv(
+        argv=>$remaining_words, spec=>$spec, strict=>0);
     for (keys %$args) {
         if (defined($args->{$_}) && $args->{$_} eq $uuid) {
             $arg = $_;
