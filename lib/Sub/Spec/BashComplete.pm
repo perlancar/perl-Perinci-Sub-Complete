@@ -325,7 +325,7 @@ sub bash_complete_spec_arg {
             );
         }
 
-        my $ah0 = $arg_spec->{attr_hashes}[0];
+        my $ah0 = $arg_spec->{clause_sets}[0];
         if ($ah0->{in}) {
             $log->tracef("completing arg value from 'in' spec");
             return _complete_array($word, $ah0->{in});
@@ -358,7 +358,7 @@ sub bash_complete_spec_arg {
             } else {
                 @w = ("--$_");
             }
-            my $aliases = $args_spec->{$_}{attr_hashes}[0]{arg_aliases};
+            my $aliases = $args_spec->{$_}{clause_sets}[0]{arg_aliases};
             if ($aliases) {
                 while (my ($al, $alinfo) = each %$aliases) {
                     push @w,
