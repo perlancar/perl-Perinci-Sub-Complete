@@ -18,10 +18,10 @@ our @EXPORT_OK = qw(
                        bash_complete_spec_arg
                );
 
-use Sub::Spec::Utils; # tmp, for _parse_schema
+use Data::Sah::Util; # tmp, for _parse_schema
 
 sub _parse_schema {
-    Sub::Spec::Utils::_parse_schema(@_);
+    Data::Sah::Util::_parse_schema(@_);
 }
 
 # borrowed from Getopt::Complete. current problems: 1) '$foo' disappears because
