@@ -1,6 +1,6 @@
 Revision history for Sub::Spec::BashComplete
 
-0.17     2011-08-31 (UNRELEASED)
+0.17     2011-10-31
 
          No functional changes. _parse_schema() is moved from Sub::Spec::Utils
          to Data::Sah::Util.
