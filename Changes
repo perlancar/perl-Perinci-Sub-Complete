@@ -1,5 +1,11 @@
 Revision history for Sub::Spec::BashComplete
 
+0.18     2011-11-23
+
+         No functional changes. _parse_schema() moved from Data::Sah::Util to
+         normalize_schema() in Data::Sah.
+
+
 0.17     2011-10-31
 
          No functional changes. _parse_schema() is moved from Sub::Spec::Utils
