@@ -394,6 +394,13 @@ __END__
 
 =head1 DESCRIPTION
 
+B<NOTICE>: The Sub::Spec specification is deprecated as of Jan 2012. L<Rinci> is
+the new specification to replace Sub::Spec, it is about 95% compatible with
+Sub::Spec, but corrects a few issues and is more generic. Perinci:: is the
+family of Perl modules that implement the Rinci specification. Many of its
+modules can handle existing Sub::Spec sub specs. L<Perinci::BashComplete> is the
+replacement for L<Sub::Spec::BashComplete>.
+
 This module provides functionality for doing bash completion. It is meant to be
 used by L<Sub::Spec::CmdLine>, but nevertheless some routines is reusable
 outside it.
