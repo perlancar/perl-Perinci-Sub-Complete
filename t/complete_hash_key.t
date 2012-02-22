@@ -7,7 +7,7 @@ use warnings;
 
 use Test::More;
 
-use Sub::Spec::BashComplete;
+use Perinci::BashComplete qw(complete_hash_key);
 
 test_complete(
     word      => 'a',
@@ -28,14 +28,13 @@ sub test_complete {
     #$log->tracef("args=%s", \%args);
 
     my $name = $args{name} // $args{word};
-    my @res = sort(Sub::Spec::BashComplete::_complete_hash_key(
-        $args{word}, $args{hash}));
-    is_deeply(\@res, $args{result}, "$name (result)") or explain(\@res);
+    my $res = [sort @{complete_hash_key(word=>$args{word}, hash=>$args{hash})}];
+    is_deeply($res, $args{result}, "$name (result)") or explain($res);
     if ($args{result_ci}) {
-        my @res_ci = sort(Sub::Spec::BashComplete::_complete_hash_key(
-            $args{word}, $args{hash}, {ci=>1}));
-        is_deeply(\@res_ci, $args{result_ci}, "$name (result_ci)")
-            or explain(\@res_ci);
+        my $res_ci = [sort @{complete_hash_key(
+            word=>$args{word}, hash=>$args{hash}, ci=>1)}];
+        is_deeply($res_ci, $args{result_ci}, "$name (result_ci)")
+            or explain($res_ci);
     }
 }
 

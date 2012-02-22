@@ -1,4 +1,4 @@
-package Sub::Spec::BashComplete;
+package Perinci::BashComplete;
 
 use 5.010;
 use strict;
@@ -10,13 +10,16 @@ use Log::Any '$log';
 require Exporter;
 our @ISA       = qw(Exporter);
 our @EXPORT_OK = qw(
+                       complete_array
+                       complete_hash_key
                        complete_env
                        complete_file
                        complete_program
-                       complete_subcommand
+                       complete_riap_func
 
-                       bash_complete_spec_arg
+                       bash_complete_riap_func_arg
                );
+our %SPEC;
 
 # borrowed from Getopt::Complete. current problems: 1) '$foo' disappears because
 # shell will substitute it. 2) can't parse if closing quotes have not been
@@ -102,49 +105,85 @@ sub _add_slashes {
     $a;
 }
 
-sub _complete_array {
-    my ($word, $arrayref, $opts) = @_;
-    $log->tracef("-> _complete_array(), word=%s, array=%s", $word, $arrayref);
-    $word //= "";
-    $opts //= {};
+$SPEC{complete_array} = {
+    v => 1.1,
+    args => {
+        array => { schema=>['array*'=>{of=>'str*'}], pos=>0, req=>1 },
+        word  => { schema=>[str=>{default=>''}], pos=>1 },
+        ci    => { schema=>[bool=>{default=>0}] },
+    },
+    result_naked => 1,
+};
+sub complete_array {
+    my %args  = @_;
+    $log->tracef("=> complete_array(%s)", \%args);
+    my $array = $args{array} or die "Please specify array";
+    my $word  = $args{word} // "";
+    my $ci    = $args{ci};
 
     my $wordu = uc($word);
-    my @res;
-    for (@$arrayref) {
-        next unless 0==($opts->{ci} ? index(uc($_), $wordu):index($_, $word));
-        push @res, $_;
+    my @words;
+    for (@$array) {
+        next unless 0==($ci ? index(uc($_), $wordu) : index($_, $word));
+        push @words, $_;
     }
-    @res;
+    \@words;
 }
 
-sub _complete_hash_key {
-    my ($word, $hashref, $opts) = @_;
-    $log->tracef("-> _complete_hash_key(), word=%s, hash=%s", $word, $hashref);
-    $word //= "";
-    $opts //= {};
+$SPEC{complete_hash_key} = {
+    v => 1.1,
+    args => {
+        hash  => { schema=>['hash*'=>{}], pos=>0, req=>1 },
+        word  => { schema=>[str=>{default=>''}], pos=>1 },
+        ci    => { schema=>[bool=>{default=>0}] },
+    },
+    result_naked => 1,
+};
+sub complete_hash_key {
+    my %args  = @_;
+    $log->tracef("=> complete_hash_key(%s)", \%args);
+    my $hash  = $args{hash} or die "Please specify hash";
+    my $word  = $args{word} // "";
+    my $ci    = $args{ci};
 
-    _complete_array($word, [keys %$hashref], $opts);
+    complete_array(word=>$word, array=>[keys %$hash], ci=>$ci);
 }
 
+$SPEC{complete_env} = {
+    v => 1.1,
+    args => {
+        word  => { schema=>[str=>{default=>''}], pos=>0 },
+        ci    => { schema=>[bool=>{default=>0}] },
+    },
+    result_naked => 1,
+};
 sub complete_env {
-    my ($word, $opts) = @_;
-    $word //= "";
+    my %args  = @_;
+    $log->tracef("=> complete_env(%s)", \%args);
+    my $word  = $args{word} // "";
+    my $ci    = $args{ci};
     if ($word =~ /^\$/) {
-        _complete_array($word, [map {"\$$_"} keys %ENV], $opts);
+        complete_array(word=>$word, array=>[map {"\$$_"} keys %ENV], ci=>$ci);
     } else {
-        _complete_array($word, [keys %ENV], $opts);
+        complete_array(word=>$word, array=>[keys %ENV], ci=>$ci);
     }
 }
 
+$SPEC{complete_program} = {
+    v => 1.1,
+    args => {
+        word  => { schema=>[str=>{default=>''}], pos=>0 },
+    },
+    result_naked => 1,
+};
 sub complete_program {
     require List::MoreUtils;
 
-    my ($word, $opts) = @_;
-    $word //= "";
-    $opts //= {};
+    my %args  = @_;
+    $log->tracef("=> complete_program(%s)", \%args);
+    my $word  = $args{word} // "";
 
-    my @res;
-
+    my @words;
     my @dir;
     my $word_has_path;
     $word =~ m!(.*)/(.*)! and do { @dir = ($1); $word_has_path++; $word = $2 };
@@ -158,48 +197,120 @@ sub complete_program {
             next unless index($_, $word) == 0;
             next unless (-x "$dir/$_") && (-f _) ||
                 ($dir eq '.' || $word_has_path) && (-d _);
-            push @res, (-d _) ? "$_/" : $_;
+            push @words, (-d _) ? "$_/" : $_;
         };
     }
 
-    _complete_array("", [List::MoreUtils::uniq(@res)]);
+    complete_array(array=>[List::MoreUtils::uniq(@words)]);
 }
 
+$SPEC{complete_file} = {
+    v => 1.1,
+    args => {
+        word => { schema=>[str=>{default=>''}], pos=>0 },
+        f    => { summary => 'Whether to include file',
+                  schema=>[bool=>{default=>1}] },
+        d    => { summary => 'Whether to include directory',
+                  schema=>[bool=>{default=>1}] },
+    },
+    result_naked => 1,
+};
 sub complete_file {
-    my ($word, $opts) = @_;
-    $word //= "";
-    $opts //= {};
-    $opts->{f} //= 1;
-    $opts->{d} //= 1;
+    my %args  = @_;
+    $log->tracef("=> complete_file(%s)", \%args);
+    my $word  = $args{word} // "";
+    my $f     = $args{f} // 1;
+    my $d     = $args{d} // 1;
 
     $word =~ s!/+$!!;
 
-    my @res;
-    opendir my($dh), "." or return ();
+    my @words;
+    opendir my($dh), "." or return [];
     for (readdir($dh)) {
         next if $word !~ /^\.\.?$/ && ($_ eq '.' || $_ eq '..');
         next unless index($_, $word) == 0;
-        next if (-f $_) && !$opts->{f};
-        next if (-d _ ) && !$opts->{d};
-        push @res, (-d _) ? "$_/" : $_;
+        next if (-f $_) && !$f;
+        next if (-d _ ) && !$d;
+        push @words, (-d _) ? "$_/" : $_;
     }
 
-    _complete_array("", \@res);
+    complete_array(array=>\@words);
 }
 
-sub complete_subcommand {
-    my ($word, $subcommands, $opts) = @_;
+$SPEC{complete_riap_func} = {
+    v => 1.1,
+    summary => 'Complete function name from Riap server',
+    description => <<'_',
 
-    _complete_hash_key($word, $subcommands, $opts);
+Will try to complete word as dotted path from the Riap server, e.g.
+'Package.SubPackage.function'.
+
+_
+    args => {
+        base_url => {
+            summary => 'Base URL, should point to a package code entity',
+            description => <<'_',
+
+Examples would be: '/' (or 'pm:/'), '/Company/API/', 'http://example.com/api/'
+
+_
+            schema=>'str*',
+            pos=>0, req=>1,
+        },
+        pa => {
+            summary => 'Perinci::Access obj, will use default if unspecified',
+            schema  => 'obj',
+        },
+        word => { schema=>[str=>{default=>''}], pos=>0 },
+    },
+    result_naked => 1,
+};
+sub complete_riap_func {
+    my %args = @_;
+    $log->tracef("=> complete_riap_func(%s)", \%args);
+    state $default_pa;
+    my $base_url = $args{base_url} or die "Please specify base_url";
+    my $pa       = $args{pa};
+    my $word     = $args{word} // "";
+
+    if (!$pa) {
+        if (!$default_pa) {
+            require Perinci::Access;
+            $default_pa = Perinci::Access->new;
+        }
+        $pa = $default_pa;
+    }
+
+    my $p = $word;
+    $p =~ s![^.]+$!!;
+    my $p2 = $p;
+    $p =~ s!\.!/!g;
+    my $url = $base_url . $p;
+    my $res = $pa->request(list => $url, {detail=>1});
+    unless ($res->[0] == 200) {
+        $log->debug("Can't list code entities on $url: $res->[0] - $res->[1]");
+        return [];
+    }
+    my @words = map {
+        my $w = $_->{uri};
+        if ($w =~ m!/$!) {
+            $w =~ s!.+/([^/]+/)$!$1!;
+        } else {
+            $w =~ s!.+/!!;
+        }
+        $w =~ s!/!.!g;
+        (length($p) ? $p2 : "") . $w
+    } grep {$_->{type} =~ /^(?:function|package)$/} @{$res->[2]};
+    complete_array(array=>\@words, word=>$word);
 }
 
-sub bash_complete_spec_arg {
-    require Sub::Spec::GetArgs::Argv;
+sub bash_complete_func_arg {
+    require Perinci::Sub::GetArgs::Argv;
     require UUID::Random;
 
-    my ($spec, $opts) = @_;
+    my ($meta, $opts) = @_;
     $opts //= {};
-    $log->tracef("-> bash_complete_spec_arg, opts=%s", $opts);
+    $log->tracef("-> bash_complete_func_arg, opts=%s", $opts);
 
     my ($words, $cword);
     if ($opts->{words}) {
@@ -219,11 +330,11 @@ sub bash_complete_spec_arg {
     }
 
     require Data::Sah;
-    my $args_spec = $spec->{args};
-    $args_spec    = {
-        map { $_ => Data::Sah::normalize_schema($args_spec->{$_}) }
-            keys %$args_spec };
-    my $args;
+    my $args_prop = $meta->{args};
+    my $args_nschemas = {
+        map { $_ => Data::Sah::normalize_schema(
+            $args_prop->{$_}{schema} // 'any') }
+            keys %$args_prop };
 
     # first, we stick a unique ID at cword to be able to check whether we should
     # complete arg name or arg value.
@@ -234,8 +345,8 @@ sub bash_complete_spec_arg {
     my $uuid = UUID::Random::generate();
     my $orig_word = $remaining_words->[$cword];
     $remaining_words->[$cword] = $uuid;
-    $args = Sub::Spec::GetArgs::Argv::get_args_from_argv(
-        argv=>$remaining_words, spec=>$spec, strict=>0);
+    my $args = Perinci::Sub::GetArgs::Argv::get_args_from_argv(
+        argv=>$remaining_words, meta=>$meta, strict=>0);
     for (keys %$args) {
         if (defined($args->{$_}) && $args->{$_} eq $uuid) {
             $arg = $_;
@@ -282,7 +393,7 @@ sub bash_complete_spec_arg {
             cword => $newcword,
             word  => $word,
             parent_args => $args,
-            spec  => $spec,
+            meta  => $meta,
             opts  => $opts,
             remaining_words => $remaining_words,
         );
@@ -297,7 +408,7 @@ sub bash_complete_spec_arg {
 
     if ($which eq 'value') {
 
-        my $arg_spec = $args_spec->{$arg};
+        my $arg_spec = $args_prop->{$arg};
         return () unless $arg_spec; # unknown arg? should not happen
 
         if ($opts->{arg_sub} && $opts->{arg_sub}{$arg}) {
@@ -320,17 +431,18 @@ sub bash_complete_spec_arg {
             );
         }
 
-        my $ah0 = $arg_spec->{clause_sets}[0];
-        if ($ah0->{in}) {
-            $log->tracef("completing arg value from 'in' spec");
-            return _complete_array($word, $ah0->{in});
+        my $as = {}; #$args_nschema->{$arg}; # XXX
+        my $ah = $as->[1];
+        if ($ah->{in}) {
+            $log->tracef("completing arg value from 'in' schema clause");
+            return _complete_array($word, $ah->{in});
         }
 
-        if ($ah0->{arg_complete}) {
-            $log->tracef("completing arg value from 'arg_complete' spec");
+        if ($arg_spec->{complete}) {
+            $log->tracef("completing arg value from 'complete' arg spec");
             return _complete_array(
                 $word,
-                $ah0->{arg_complete}->(
+                $arg_spec->{complete}->(
                     word => $word, args => $args,
                 )
             );
@@ -344,16 +456,16 @@ sub bash_complete_spec_arg {
         # which eq 'name'
 
         my @completeable_args;
-        for (sort keys %$args_spec) {
+        for (sort keys %$args_prop) {
             my $a = $_; $a =~ s/^--//;
             my @w;
-            my $type = $args_spec->{$_}{type};
+            my $type = $args_nschemas->{$_}[0];
             if ($type eq 'bool') {
                 @w = ("--$_", "--no$_");
             } else {
                 @w = ("--$_");
             }
-            my $aliases = $args_spec->{$_}{clause_sets}[0]{arg_aliases};
+            my $aliases = $args_prop->{$_}{aliases};
             if ($aliases) {
                 while (my ($al, $alinfo) = each %$aliases) {
                     push @w,

@@ -6,7 +6,7 @@ use warnings;
 
 use Test::More;
 
-use Sub::Spec::BashComplete;
+use Perinci::BashComplete qw(complete_array);
 
 test_complete(
     word      => 'a',
@@ -35,14 +35,14 @@ sub test_complete {
     my (%args) = @_;
 
     my $name = $args{name} // $args{word};
-    my @res = Sub::Spec::BashComplete::_complete_array(
-        $args{word}, $args{array});
-    is_deeply(\@res, $args{result}, "$name (result)") or explain(\@res);
+    my $res = complete_array(
+        word=>$args{word}, array=>$args{array});
+    is_deeply($res, $args{result}, "$name (result)") or explain($res);
     if ($args{result_ci}) {
-        my @res_ci = Sub::Spec::BashComplete::_complete_array(
-            $args{word}, $args{array}, {ci=>1});
-        is_deeply(\@res_ci, $args{result_ci}, "$name (result_ci)")
-            or explain(\@res_ci);
+        my $res_ci = complete_array(
+            word=>$args{word}, array=>$args{array}, ci=>1);
+        is_deeply($res_ci, $args{result_ci}, "$name (result_ci)")
+            or explain($res_ci);
     }
 }
 

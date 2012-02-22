@@ -6,8 +6,8 @@ use warnings;
 #use Log::Any '$log';
 
 use File::Which qw(which);
+use Perinci::BashComplete qw(bash_complete_meta_arg);
 use Test::More;
-use Sub::Spec::BashComplete qw(bash_complete_spec_arg);
 
 plan skip_all => "bash is not available on this system" unless which("bash");
 
@@ -239,7 +239,7 @@ sub test_complete {
     local $ENV{COMP_LINE}  = $line;
     local $ENV{COMP_POINT} = $point;
 
-    my @res = bash_complete_spec_arg($args{spec}, $args{opts});
+    my @res = bash_complete_meta_arg($args{spec}, $args{opts});
     is_deeply(\@res, $args{result}, "$name (result)") or explain(\@res);
 }
 
