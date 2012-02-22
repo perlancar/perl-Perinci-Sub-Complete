@@ -304,31 +304,88 @@ sub complete_riap_func {
     complete_array(array=>\@words, word=>$word);
 }
 
-sub bash_complete_func_arg {
+$SPEC{bash_complete_riap_func_arg} = {
+    v => 1.1,
+    summary => 'Complete function arguments',
+    description => <<'_',
+
+Given a function URL, will try to complete function argument names or values.
+
+_
+    args => {
+        url => {
+            summary => 'Function URL',
+            description => <<'_',
+
+Examples would be: '/Perinci/Examples/gen_array' (or
+'pm:/Perinci/Examples/gen_array') or 'http://example.com/api/some_func'
+
+_
+            schema=>'str*',
+            pos=>0, req=>1,
+        },
+        words => {
+            summary => 'Command-line, broken as words',
+            schema => ['array*' => {of=>'str*'}],
+            description => <<'_',
+
+If unset, will be taken from COMP_LINE and COMP_POINT.
+
+_
+        },
+        cword => {
+            summary => 'On which word cursor is located (zero-based)',
+            schema => 'int*',
+        },
+        pa => {
+            summary => 'Perinci::Access obj, will use default if unspecified',
+            schema  => 'obj',
+        },
+        arg_sub => {
+            summary => 'Override how argument is completed',
+            description => <<'_',
+
+Code will be called with XXX.
+
+_
+            schema=>'code*',
+        },
+        args_sub => {
+            summary => 'Override how arguments are completed',
+            description => <<'_',
+
+Code will be called with XXX.
+
+_
+            schema=>'code*',
+        },
+    },
+    result_naked => 1,
+};
+sub bash_complete_riap_func_arg {
     require Perinci::Sub::GetArgs::Argv;
     require UUID::Random;
 
-    my ($meta, $opts) = @_;
-    $opts //= {};
-    $log->tracef("-> bash_complete_func_arg, opts=%s", $opts);
-
-    my ($words, $cword);
-    if ($opts->{words}) {
-        $words = $opts->{words};
-        $cword = $opts->{cword} // 0;
-    } else {
+    my %args = @_;
+    $log->tracef("-> bash_complete_riap_func_arg(%s)", $args);
+    my $word  = $args{word} // "";
+    my $words = $args{words};
+    my $cword = $args{cword} // 0;
+    if (!$words) {
         my $res = _parse_request();
         $words = $res->{words};
         $cword = $res->{cword};
     }
     my $word = $words->[$cword] // "";
+
     $log->tracef("words=%s, cword=%d, word=%s", $words, $cword, $word);
 
     if ($word =~ /^\$/) {
         $log->tracef("word begins with \$, completing env vars");
-        return complete_env($word);
+        return complete_env(word=>$word);
     }
 
+    # XXX RESUME 2012-02-23
     require Data::Sah;
     my $args_prop = $meta->{args};
     my $args_nschemas = {
@@ -496,18 +553,17 @@ sub bash_complete_func_arg {
 }
 
 1;
-# ABSTRACT: Provide bash completion for Sub::Spec::CmdLine programs
-__END__
+# ABSTRACT: Bash completion routines for function & function argument over Riap
 
 =head1 SYNOPSIS
 
- # require'd by Sub::Spec::CmdLine bash completion is enabled
+ # require'd by Sub::Spec::CmdLine when bash completion is enabled
 
 
 =head1 DESCRIPTION
 
 This module provides functionality for doing bash completion. It is meant to be
-used by L<Sub::Spec::CmdLine>, but nevertheless some routines is reusable
+used by L<Sub::Spec::CmdLine>, but nevertheless some routines are reusable
 outside it.
 
 
@@ -515,80 +571,6 @@ outside it.
 
 None of the functions are exported by default, but they are exportable.
 
-
-=head2 complete_env($word, \%opts) => ARRAY
-
-Complete from environment variables (C<%ENV>). Word should be '' or '$' or 'foo'
-or '$foo'. Return list of possible completion, e.g. C<('$USER', '$HOME', ...)>.
-
-Options:
-
-=over 4
-
-=item * ci => BOOL (default 0)
-
-If set to true, match case-insensitively.
-
-=back
-
-=head2 complete_program($word, \%opts) => ARRAY
-
-Complete from program names (or dir names). Only program which is executable
-will be listed. Word can be '/usr/bin/foo' or 'foo' or ''. If word doesn't
-contain '/', will search from PATH.
-
-=head2 complete_file($word, \%opts) => ARRAY
-
-Complete from file names in the current directory.
-
-Options:
-
-=over 4
-
-=item * f => BOOL (default 1)
-
-If set to 0, will not complete files, only directories.
-
-=item * d => BOOL (default 1)
-
-If set to 0, will not complete directories, only files.
-
-=back
-
-=head2 complete_subcommand($word, \%subcommands, \%opts) => ARRAY
-
-Complete from subcommand names in C<%subcommands>.
-
-Options:
-
-=over 4
-
-=item * ci => BOOL (default 0)
-
-If set to true, match case-insensitively.
-
-=back
-
-=head2 bash_complete_spec_arg(\%spec, \%opts) => ARRAY
-
-Complete subroutine arguments (from C<$spec{args}>, where %spec is a
-L<Sub::Spec> subroutine spec). Word can be 'argname' or '--arg' or '--arg='.
-
-Options:
-
-=over 4
-
-=item * words => ARRAYREF
-
-If unset, will be taken from COMP_LINE and COMP_POINT.
-
-=item * cword => INT
-
-=item * args_sub => CODEREF
-
-=item * arg_sub => {ARGNAME => CODEREF, ...}
-
-=back
 
 =head1 BUGS/LIMITATIONS/TODOS
 
@@ -603,9 +585,7 @@ COMP_CWORD by bash.
 
 =head1 SEE ALSO
 
-L<Sub::Spec>
-
-L<Sub::Spec::CmdLine>
+L<Perinci::CmdLine>, L<Riap>
 
 Other bash completion modules on CPAN: L<Getopt::Complete>, L<Bash::Completion>.
 
