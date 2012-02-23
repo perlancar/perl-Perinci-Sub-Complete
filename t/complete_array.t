@@ -11,7 +11,7 @@ use Perinci::BashComplete qw(complete_array);
 test_complete(
     word      => 'a',
     array     => [qw(an apple a day keeps the doctor away)],
-    result    => [qw(an apple a away)],
+    result    => [qw(a an apple away)],
 );
 test_complete(
     word      => 'an',

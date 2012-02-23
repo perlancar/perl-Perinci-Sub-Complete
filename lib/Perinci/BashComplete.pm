@@ -127,7 +127,7 @@ sub complete_array {
         next unless 0==($ci ? index(uc($_), $wordu) : index($_, $word));
         push @words, $_;
     }
-    \@words;
+    $ci ? [sort {lc($a) cmp lc($b)} @words] : [sort @words];
 }
 
 $SPEC{complete_hash_key} = {
@@ -237,6 +237,21 @@ sub complete_file {
     complete_array(array=>\@words);
 }
 
+sub _get_pa {
+    my ($pa) = @_;
+    state $default_pa;
+
+    if (!$pa) {
+        if (!$default_pa) {
+            require Perinci::Access;
+            $default_pa = Perinci::Access->new;
+        }
+        $pa = $default_pa;
+    }
+    $pa;
+}
+
+# XXX configurable path separator other than "."
 $SPEC{complete_riap_func} = {
     v => 1.1,
     summary => 'Complete function name from Riap server',
@@ -268,18 +283,9 @@ _
 sub complete_riap_func {
     my %args = @_;
     $log->tracef("=> complete_riap_func(%s)", \%args);
-    state $default_pa;
     my $base_url = $args{base_url} or die "Please specify base_url";
-    my $pa       = $args{pa};
     my $word     = $args{word} // "";
-
-    if (!$pa) {
-        if (!$default_pa) {
-            require Perinci::Access;
-            $default_pa = Perinci::Access->new;
-        }
-        $pa = $default_pa;
-    }
+    my $pa       = _get_pa($args{pa});
 
     my $p = $word;
     $p =~ s![^.]+$!!;
@@ -311,6 +317,30 @@ $SPEC{bash_complete_riap_func_arg} = {
 
 Given a function URL, will try to complete function argument names or values.
 
+Algorithm:
+
+0. If word begins with '$', we complete from environment variables and are done.
+
+1. Retrieve function metadata from URL.
+
+2. Call 'get_args_from_argv()' to extract hash arguments from the given 'words'.
+
+3. Determine whether we need to complete argument name (e.g. '--arg<tab>') or
+argument value (e.g. '--arg1 <tab>' or '<tab>' at 1st word where there is an
+argument specified at pos=0).
+
+4. Call 'custom_completer' if defined. If a list of words is returned, we're
+done.
+
+5. If we are completing argument name, then supply a list of possible argument
+names (or fallback to completing filenames).
+
+6. If we are completing argument value, first check if 'custom_arg_completer'
+and 'custom_arg_completer' are defined. If yes, call those routines. If a list
+of words is returned, we're done.
+
+7.
+
 _
     args => {
         url => {
@@ -335,29 +365,69 @@ _
         },
         cword => {
             summary => 'On which word cursor is located (zero-based)',
+            description => <<'_',
+
+If unset, will be taken from COMP_LINE and COMP_POINT.
+
+_
             schema => 'int*',
         },
         pa => {
             summary => 'Perinci::Access obj, will use default if unspecified',
             schema  => 'obj',
         },
-        arg_sub => {
-            summary => 'Override how argument is completed',
+        custom_completer => {
+            summary => 'Supply custom completion routine',
             description => <<'_',
 
-Code will be called with XXX.
+If supplied, instead of the default completion routine, this code will be called
+instead. Refer to function description to see when this routine is called.
+
+Code will be called with a hash argument, with these keys: 'which' (a string
+with value 'name' or 'value' depending on whether we should complete argument
+name or value), 'words' (an array, the command line split into words), 'cword'
+(int, position of word in 'words'), 'word' (the word to be completed),
+'parent_args' (hash), 'remaining_words' (array, slice of 'words' after 'cword'),
+'meta' (the function metadata retrieved from Riap client).
+
+Code should return an array(ref) of completion, or undef to declare declination,
+on which case completion will resume using the standard builtin routine.
 
 _
-            schema=>'code*',
+            schema => 'code',
         },
-        args_sub => {
-            summary => 'Override how arguments are completed',
+        custom_arg_completer => {
+            summary => 'Supply custom argument value completion routines',
             description => <<'_',
 
-Code will be called with XXX.
+Either code or a hash of argument names and codes.
+
+If supplied, instead of the default completion routine, this code will be called
+instead. Refer to function description to see when this routine is called.
+
+Code will be called with hash arguments containing these keys: 'word' (string,
+the word to be completed), 'arg' (string, the argument name that we are
+completing the value of), 'args' (hash, the arguments that have been collected
+so far).
 
 _
-            schema=>'code*',
+            schema=>['any*' => {
+                of => [
+                    'code*',
+                    ['hash*'=>{values_of=>'code*'}],
+                ]}],
+        },
+        common_opts => {
+            summary => 'Common options',
+            description => <<'_',
+
+When completing argument name, this list will be added.
+
+_
+            schema => ['array*' => {
+                of=>['any*' => {of=>['str*', ['array*'=>{of=>'str*'}]]}],
+                default=>[['--help', '-?', '-h']],
+            }],
         },
     },
     result_naked => 1,
@@ -367,8 +437,8 @@ sub bash_complete_riap_func_arg {
     require UUID::Random;
 
     my %args = @_;
-    $log->tracef("-> bash_complete_riap_func_arg(%s)", $args);
-    my $word  = $args{word} // "";
+    $log->tracef("=> bash_complete_riap_func_arg(%s)", \%args);
+    my $url = $args{url} or die "Please specify url";
     my $words = $args{words};
     my $cword = $args{cword} // 0;
     if (!$words) {
@@ -377,6 +447,9 @@ sub bash_complete_riap_func_arg {
         $cword = $res->{cword};
     }
     my $word = $words->[$cword] // "";
+    my $pa = _get_pa($args{pa});
+
+    my $res;
 
     $log->tracef("words=%s, cword=%d, word=%s", $words, $cword, $word);
 
@@ -385,13 +458,23 @@ sub bash_complete_riap_func_arg {
         return complete_env(word=>$word);
     }
 
-    # XXX RESUME 2012-02-23
-    require Data::Sah;
-    my $args_prop = $meta->{args};
-    my $args_nschemas = {
-        map { $_ => Data::Sah::normalize_schema(
-            $args_prop->{$_}{schema} // 'any') }
-            keys %$args_prop };
+    $res = $pa->request(meta => $url);
+    unless ($res->[0] == 200) {
+        $log->debug("Failed getting meta from $url: $res->[0] - $res->[1]");
+        return [];
+    }
+    my $meta = $res->[2];
+    if ((my $v = $meta->{v} // 1.0) != 1.1) {
+        $log->debug("Metadata version is not supported ($v), ".
+                        "only 1.1 is supported");
+        return [];
+    }
+    my $args_p = $meta->{args};
+    unless ($args_p) {
+        $log->debug("Metadata does not have 'args' property, is URL a ".
+                        "function code entity?");
+        return [];
+    }
 
     # first, we stick a unique ID at cword to be able to check whether we should
     # complete arg name or arg value.
@@ -402,8 +485,13 @@ sub bash_complete_riap_func_arg {
     my $uuid = UUID::Random::generate();
     my $orig_word = $remaining_words->[$cword];
     $remaining_words->[$cword] = $uuid;
-    my $args = Perinci::Sub::GetArgs::Argv::get_args_from_argv(
+    $res = Perinci::Sub::GetArgs::Argv::get_args_from_argv(
         argv=>$remaining_words, meta=>$meta, strict=>0);
+    if ($res->[0] != 200) {
+        $log->debug("Failed getting args from argv: $res->[0] - $res->[1]");
+        return [];
+    }
+    my $args = $res->[2];
     for (keys %$args) {
         if (defined($args->{$_}) && $args->{$_} eq $uuid) {
             $arg = $_;
@@ -413,8 +501,8 @@ sub bash_complete_riap_func_arg {
         }
     }
     # restore original word which we replaced with uuid earlier (we can't simply
-    # use local $remaining_words->[$cword] = $uuid because the array might be
-    # sliced)
+    # use local $remaining_words->[$cword] = $uuid because the $remaining_words
+    # array might already be sliced by get_args_from_argv())
     for my $i (0..@$remaining_words-1) {
         if (defined($remaining_words->[$i]) &&
                 $remaining_words->[$i] eq $uuid) {
@@ -431,124 +519,122 @@ sub bash_complete_riap_func_arg {
     if ($which eq 'value' && $word =~ /^-/) {
         # user indicates he wants to complete arg name
         $which = 'name';
+        delete $args->{$arg} if !defined($args->{$arg});
     } elsif ($which ne 'value' && $word =~ /^--([\w-]+)=(.*)/) {
         $arg = $1;
-        $words->[$cword] = $2;
+        $word = $words->[$cword] = $2;
         $which = 'value';
     }
     $log->tracef("we should complete arg $which, arg=%s, word=%s", $arg, $word);
 
-    if ($opts->{custom_completer}) {
-        $log->tracef("custom_completer option is specified, will use it");
-        # custom_completer can decline by returning (undef) (that is, a
-        # 1-element list containing undef)
+    if ($args{custom_completer}) {
+        $log->tracef("calling 'custom_completer'");
+        # custom_completer can decline by returning undef
         my $newcword = $cword - (@$words - @$remaining_words);
         $newcword = 0 if $newcword < 0;
-        my $res = $opts->{custom_completer}->(
+        my $res = $args{custom_completer}->(
             which => $which,
             words => $words,
             cword => $newcword,
             word  => $word,
             parent_args => $args,
             meta  => $meta,
-            opts  => $opts,
             remaining_words => $remaining_words,
         );
-        if (@$res==1 && !defined($res->[0])) {
+        if (!$res) {
             $log->tracef("custom_completer declined, will continue without");
         } else {
             $log->tracef("result from custom_completer: %s", $res);
-            my @res = _complete_array($word, $res);
-            return @res;
+            return complete_array(word=>$word, array=>$res);
         }
     }
 
     if ($which eq 'value') {
-
-        my $arg_spec = $args_prop->{$arg};
-        return () unless $arg_spec; # unknown arg? should not happen
-
-        if ($opts->{arg_sub} && $opts->{arg_sub}{$arg}) {
-            $log->tracef("completing arg value from 'arg_sub' opt");
-            return _complete_array(
-                $word,
-                [$opts->{arg_sub}{$arg}->(
-                    word => $word, arg => $arg, args => $args,
-                )] # ...
-            );
+        my $cac = $args{custom_arg_completer};
+        if ($cac) {
+            if (ref($cac) eq 'HASH') {
+                if ($cac->{$arg}) {
+                    $log->tracef("calling 'custom_arg_completer'->{%s}", $arg);
+                    return complete_array(
+                        word => $word,
+                        array => [$cac->{$arg}->(
+                            word => $word, arg => $arg, args => $args,
+                        )]
+                    );
+                }
+            } else {
+                $log->tracef("calling 'custom_arg_completer' (arg=%s)", $arg);
+                return complete_array(
+                    word  => $word,
+                    array => [$cac->(
+                        word => $word, arg => $arg, args => $args,
+                    )]
+                );
+            }
         }
 
-        if ($opts->{args_sub}) {
-            $log->tracef("completing arg value from 'args_sub' opt");
-            return _complete_array(
-                $word,
-                [$opts->{args_sub}->(
-                    word => $word, arg => $arg, args => $args,
-                )] # ...
-            );
+        $log->tracef("calling 'complete_arg_val' action on %s", $url);
+        $res = $pa->request(complete_arg_val => $url, {arg=>$arg, word=>$word});
+        $log->tracef("result from %s: %s", $url, $res);
+        my $words;
+        if ($res->[0] != 200) {
+            $log->debug("Failed requesting complete_arg_val to $url: ".
+                            "$res->[0] - $res->[1]");
+            $words = [];
+        } else {
+            $words = $res->[2];
         }
 
-        my $as = {}; #$args_nschema->{$arg}; # XXX
-        my $ah = $as->[1];
-        if ($ah->{in}) {
-            $log->tracef("completing arg value from 'in' schema clause");
-            return _complete_array($word, $ah->{in});
-        }
+        return $words if @$words;
 
-        if ($arg_spec->{complete}) {
-            $log->tracef("completing arg value from 'complete' arg spec");
-            return _complete_array(
-                $word,
-                $arg_spec->{complete}->(
-                    word => $word, args => $args,
-                )
-            );
-        }
-
-        # fallback
+        # fallback to file
         $log->tracef("completing arg value from file (fallback)");
-        return complete_file($word);
+        return complete_file(word=>$word);
 
     } elsif ($word eq '' || $word =~ /^--?/) {
         # which eq 'name'
 
-        my @completeable_args;
-        for (sort keys %$args_prop) {
-            my $a = $_; $a =~ s/^--//;
+        # find completable args (the one that has not been mentioned)
+
+        my @words;
+      ARG:
+        for my $a (keys %$args_p) {
+            my $as = $args_p->{$a};
             my @w;
-            my $type = $args_nschemas->{$_}[0];
+            my $type = $as->{schema}[0];
             if ($type eq 'bool') {
-                @w = ("--$_", "--no$_");
+                @w = ("--$a", "--no$a");
             } else {
-                @w = ("--$_");
-            }
-            my $aliases = $args_prop->{$_}{aliases};
-            if ($aliases) {
-                while (my ($al, $alinfo) = each %$aliases) {
-                    push @w,
-                        (length($al) == 1 ? "-$al" : "--$al");
-                    if ($type eq 'bool' && length($al) > 1 &&
-                            !$alinfo->{code}) {
-                        push @w, "--no$al";
-                    }
-                }
+                @w = ("--$a");
             }
             # skip displaying --foo if already mentioned, except when current
             # word
-            next if defined($args->{$a}) && !($word ~~ @w);
-            push @completeable_args, @w;
+            unless ($word ~~ @w) {
+                next ARG if exists($args->{$a});
+                next ARG if defined($as->{alias_for}) &&
+                    exists($args->{ $as->{alias_for} });
+            }
+            push @words, @w;
         }
-        $log->tracef("completeable_args = %s", \@completeable_args);
 
-        if ($cword == 0 || $cword == 1 && !$words->[0]) {
-            my @general_opts = ('--help', '-h', '-?');
-            return _complete_array($word, [@general_opts, @completeable_args]);
-        } else {
-            return _complete_array($word, [@completeable_args]);
+        my $common_opts = $args{common_opts} // [['--help', '-h', '-?']];
+      CO:
+        for my $co (@$common_opts) {
+            if (ref($co) eq 'ARRAY') {
+                for (@$co) { next CO if $_ ~~ @$words || $_ ~~ @words }
+                push @words, @$co;
+            } else {
+                push @words, $co unless $co ~~ @$words || $co ~~ @words;
+            }
         }
+
+        return complete_array(word=>$word, array=>\@words);
+
     } else {
+
         # fallback
-        return complete_file($word);
+        return complete_file(word=>$word);
+
     }
 }
 
