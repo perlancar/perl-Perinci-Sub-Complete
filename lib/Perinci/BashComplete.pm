@@ -25,19 +25,24 @@ our %SPEC;
 # shell will substitute it. 2) can't parse if closing quotes have not been
 # supplied (e.g. spanel get-plan "BISNIS A<tab>). at least it works with
 # backslash escapes.
+
+# 2012-02-27 - Change due to lots of failure reports from CPAN Testers: do not
+# redirect stderr to /dev/null, die on eval error, add sanity check.
+
 sub _line_to_argv {
     require IPC::Open2;
 
     my $line = pop;
     my $cmd = q{perl -e "use Data::Dumper; print Dumper(\@ARGV)" -- } . $line;
     my ($reader,$writer);
-    my $pid = IPC::Open2::open2($reader,$writer,'bash 2>/dev/null');
-    return unless $pid;
+    my $pid = IPC::Open2::open2($reader,$writer,'bash');
     print $writer $cmd;
     close $writer;
     my $result = join("",<$reader>);
     no strict; no warnings;
     my $array = eval $result;
+    die $@ if $@;
+    die "Dumper result not array?" unless ref($array) eq 'ARRAY'; # sanity check
     my @array = @$array;
 
     # We don't want to expand ~ for user experience and to be consistent with
