@@ -1,5 +1,12 @@
 Revision history for Perinci-BashComplete
 
+0.20     2012-02-27
+
+         No functional changes. Make _line_to_argv() report errors (lots of
+         failure reports from CPAN Testers with apparently undef result from
+         _line_to_argv()).
+
+
 0.19     2012-02-23
 
          Rename distribution from Sub-Spec-BashComplete to Perinci-BashComplete.
