@@ -1,5 +1,10 @@
 Revision history for Perinci-BashComplete
 
+0.21     2012-02-28
+
+         Handle argument name completion of one-letter args and cmdline_aliases.
+
+
 0.20     2012-02-27
 
          No functional changes. Make _line_to_argv() report errors (lots of
