@@ -26,14 +26,17 @@ our %SPEC;
 # supplied (e.g. spanel get-plan "BISNIS A<tab>). at least it works with
 # backslash escapes.
 
-# 2012-02-27 - Change due to lots of failure reports from CPAN Testers: do not
-# redirect stderr to /dev/null, die on eval error, add sanity check.
+# 2012-02-27 - Change due investigating to lots of failure reports from CPAN
+# Testers: do not redirect stderr to /dev/null, die on eval error, add sanity
+# check.
+
+# 2012-02-28 - Replace hardcoded call to "perl" with $^X.
 
 sub _line_to_argv {
     require IPC::Open2;
 
     my $line = pop;
-    my $cmd = q{perl -e "use Data::Dumper; print Dumper(\@ARGV)" -- } . $line;
+    my $cmd = $^X . q{ -e "use Data::Dumper; print Dumper(\@ARGV)" -- } . $line;
     my ($reader,$writer);
     my $pid = IPC::Open2::open2($reader,$writer,'bash');
     print $writer $cmd;
