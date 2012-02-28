@@ -1,5 +1,12 @@
 Revision history for Perinci-BashComplete
 
+0.22     2012-02-28
+
+         No functional changes. Fix to avoid numerous CT failure reports
+         (calling perl binary using $^X instead of the hardcoded "perl"). I
+         haven't quoted $^X, hope that won't cause much trouble though.
+
+
 0.21     2012-02-28
 
          Handle argument name completion of one-letter args and cmdline_aliases.
