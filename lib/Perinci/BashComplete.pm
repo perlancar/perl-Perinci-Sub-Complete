@@ -603,23 +603,25 @@ sub bash_complete_riap_func_arg {
 
         my @words;
       ARG:
-        for my $a (keys %$args_p) {
-            my $as = $args_p->{$a};
-            my @w;
-            my $type = $as->{schema}[0];
-            if ($type eq 'bool') {
-                @w = ("--$a", "--no$a");
-            } else {
-                @w = ("--$a");
+        for my $a0 (keys %$args_p) {
+            next if exists $args->{$a0};
+            my $as = $args_p->{$a0};
+            my @a;
+            push @a, $a0;
+            if ($as->{cmdline_aliases}) {
+                push @a, $_ for keys %{$as->{cmdline_aliases}};
             }
-            # skip displaying --foo if already mentioned, except when current
-            # word
-            unless ($word ~~ @w) {
-                next ARG if exists($args->{$a});
-                next ARG if defined($as->{alias_for}) &&
-                    exists($args->{ $as->{alias_for} });
+            for my $a (@a) {
+                my @w;
+                my $type = $as->{schema}[0];
+                if ($type eq 'bool' && length($a) > 1 &&
+                        !$as->{schema}[1]{is}) {
+                    @w = ("--$a", "--no$a");
+                } else {
+                    @w = length($a) == 1 ? ("-$a") : ("--$a");
+                }
+                push @words, @w;
             }
-            push @words, @w;
         }
 
         my $common_opts = $args{common_opts} // [['--help', '-h', '-?']];

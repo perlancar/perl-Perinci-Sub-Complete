@@ -35,6 +35,7 @@ $SPEC{f1} = {
 };
 sub f1 { [200,"OK"] }
 
+# for testing arg value completion
 $SPEC{f2} = {
     v => 1.1,
     args => {
@@ -54,6 +55,22 @@ $SPEC{f2} = {
     },
 };
 sub f2 { [200,"OK"] }
+
+# for testing bool args, one-letter args, and cmdline_aliases
+$SPEC{f3} = {
+    v => 1.1,
+    args => {
+        b  => {schema => "bool",
+               cmdline_aliases => {alias1=>{}}},
+        b2 => {schema => "bool"},
+        b3 => {schema => ["bool"=>{is=>1}],
+               cmdline_aliases => {X=>{}}},
+        s  => {schema => "str"},
+        s2 => {schema => ["str"],
+               cmdline_aliases => {S=>{}, S2=>{schema=>['bool'=>{is=>1}]}}},
+    },
+};
+sub f3 { [200,"OK"] }
 
 package main;
 
@@ -219,6 +236,15 @@ test_complete(
     comp_line   => 'CMD --str1 ',
     comp_point0 => '           ^',
     result      => [qw(a b c)],
+);
+
+test_complete(
+    name        => 'complete arg name (bool, one-letter, cmdline_aliases)',
+    args        => {url=>'/Test/Perinci/BashComplete/f3'},
+    comp_line   => 'CMD ',
+    comp_point0 => '    ^',
+    result      => [qw(--S2 --alias1 --b2 --b3 --help --noalias1 --nob2 --s2
+                       -? -S -X -b -h -s)],
 );
 
 test_complete(
