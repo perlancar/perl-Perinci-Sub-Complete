@@ -1,5 +1,11 @@
 Revision history for Perinci-BashComplete
 
+0.25     2012-03-04
+
+         + [Fix] More fixes to complete_file() so it more closely resembles bash
+         (symlink traversal is still different though).
+
+
 0.24     2012-03-04
 
          + [Fix] complete_file() now behaves more like bash (though not nearly
