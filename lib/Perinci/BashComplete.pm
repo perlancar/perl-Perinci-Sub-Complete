@@ -217,14 +217,22 @@ sub complete_file {
     my $f     = $args{f} // 1;
     my $d     = $args{d} // 1;
 
+    my @all;
+    if ($word =~ m!(\A|/)\z!) {
+        my $dir = length($word) ? $word : ".";
+        opendir my($dh), $dir or return [];
+        @all = grep { $_ ne '.' && $_ ne '..' } readdir($dh);
+        closedir $dh;
+    } else {
+        @all = grep {length} # strange, [glob(" ")] returns [""] instead of []
+            glob($word);
+    }
+
     my @words;
-    opendir my($dh), "." or return [];
-    for (glob("$word*")) {
-        next if $word !~ /^\.\.?$/ && ($_ eq '.' || $_ eq '..');
-        next unless index($_, $word) == 0;
+    for (@all) {
         next if (-f $_) && !$f;
         next if (-d _ ) && !$d;
-        push @words, (-d _) ? "$_/" : $_;
+        push @words, (-d _) && !m!/\z! ? "$_/" : $_;
     }
 
     complete_array(array=>\@words);
