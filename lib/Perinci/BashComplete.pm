@@ -21,37 +21,25 @@ our @EXPORT_OK = qw(
                );
 our %SPEC;
 
-# borrowed from Getopt::Complete. current problems: 1) '$foo' disappears because
-# shell will substitute it. 2) can't parse if closing quotes have not been
-# supplied (e.g. spanel get-plan "BISNIS A<tab>). at least it works with
-# backslash escapes.
-
-# 2012-02-27 - Change due investigating to lots of failure reports from CPAN
-# Testers: do not redirect stderr to /dev/null, die on eval error, add sanity
-# check.
-
-# 2012-02-28 - Replace hardcoded call to "perl" with $^X.
+# current problems: 1) '$foo' disappears because shell will substitute it. 2)
+# can't parse if closing quotes have not been supplied (e.g. spanel get-plan
+# "BISNIS A<tab>). at least it works with backslash escapes.
 
 sub _line_to_argv {
     require IPC::Open2;
 
     my $line = pop;
-    my $cmd = $^X . q{ -e "use Data::Dumper; print Dumper(\@ARGV)" -- } . $line;
-    my ($reader,$writer);
+    my $cmd = q{_pbc() { for a in "$@"; do echo "$a"; done }; _pbc } . $line;
+    my ($reader, $writer);
     my $pid = IPC::Open2::open2($reader,$writer,'bash');
     print $writer $cmd;
     close $writer;
-    my $result = join("",<$reader>);
-    no strict; no warnings;
-    my $array = eval $result;
-    die $@ if $@;
-    die "Dumper result not array?" unless ref($array) eq 'ARRAY'; # sanity check
-    my @array = @$array;
+    my @array = map {chomp;$_} <$reader>;
 
     # We don't want to expand ~ for user experience and to be consistent with
     # Bash's behavior for tab completion (as opposed to expansion of ARGV).
     my $home_dir = (getpwuid($<))[7];
-    @array = map { $_ =~ s/^$home_dir/\~/; $_ } @array;
+    @array = map { s!\A\Q$home_dir\E(/|\z)!\~$1!; $_ } @array;
 
     return @array;
 }
