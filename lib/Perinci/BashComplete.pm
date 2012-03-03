@@ -21,17 +21,16 @@ our @EXPORT_OK = qw(
                );
 our %SPEC;
 
-# current problems: 1) '$foo' disappears because shell will substitute it. 2)
-# can't parse if closing quotes have not been supplied (e.g. spanel get-plan
-# "BISNIS A<tab>). at least it works with backslash escapes.
-
+# current problems: Can't parse unclosed quotes (e.g. spanel get-plan "BISNIS
+# A<tab>) and probably other problems, since we don't have access to COMP_WORDS
+# like in shell functions.
 sub _line_to_argv {
     require IPC::Open2;
 
     my $line = pop;
     my $cmd = q{_pbc() { for a in "$@"; do echo "$a"; done }; _pbc } . $line;
     my ($reader, $writer);
-    my $pid = IPC::Open2::open2($reader,$writer,'bash');
+    my $pid = IPC::Open2::open2($reader,$writer,'bash 2>/dev/null');
     print $writer $cmd;
     close $writer;
     my @array = map {chomp;$_} <$reader>;
