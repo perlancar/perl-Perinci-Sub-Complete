@@ -1,5 +1,12 @@
 Revision history for Perinci-BashComplete
 
+0.23     2012-03-03
+
+         No functional changes. Change implementation of _line_to_argv() from
+         calling Perl binary and dumping @ARGV, to using bash's own "$@". On my
+         Atom N570 netbook, this shaves time from about 0.1s to 0.03s.
+
+
 0.22     2012-02-28
 
          No functional changes. Fix to avoid numerous CT failure reports
