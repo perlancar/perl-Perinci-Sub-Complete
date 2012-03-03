@@ -1,5 +1,13 @@
 Revision history for Perinci-BashComplete
 
+0.24     2012-03-04
+
+         + [Fix] complete_file() now behaves more like bash (though not nearly
+         so, due to glob()'s quirks): First it works with files/dirs outside
+         curdir. When word is '' or ends with '/', it uses readdir() to include
+         dotfiles. Otherwise it treats word as wildcard and glob() it.
+
+
 0.23     2012-03-03
 
          No functional changes. Change implementation of _line_to_argv() from
