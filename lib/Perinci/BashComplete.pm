@@ -217,11 +217,9 @@ sub complete_file {
     my $f     = $args{f} // 1;
     my $d     = $args{d} // 1;
 
-    $word =~ s!/+$!!;
-
     my @words;
     opendir my($dh), "." or return [];
-    for (readdir($dh)) {
+    for (glob("$word*")) {
         next if $word !~ /^\.\.?$/ && ($_ eq '.' || $_ eq '..');
         next unless index($_, $word) == 0;
         next if (-f $_) && !$f;
