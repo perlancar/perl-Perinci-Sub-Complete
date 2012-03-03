@@ -221,21 +221,23 @@ sub complete_file {
     if ($word =~ m!(\A|/)\z!) {
         my $dir = length($word) ? $word : ".";
         opendir my($dh), $dir or return [];
-        @all = grep { $_ ne '.' && $_ ne '..' } readdir($dh);
+        @all = map { "$dir$_" } grep { $_ ne '.' && $_ ne '..' } readdir($dh);
         closedir $dh;
     } else {
         # must add wildcard char, glob() is convoluted. also {a,b} is
         # interpreted by glob() (not so by bash file completion). also
         # whitespace is interpreted by glob :(. later should replace with a
         # saner one, like wildcard2re.
-        @all = grep {length} glob("$word*");
+        @all = glob("$word*");
     }
 
     my @words;
     for (@all) {
         next if (-f $_) && !$f;
         next if (-d _ ) && !$d;
-        push @words, (-d _) && !m!/\z! ? "$_/" : $_;
+        $_ = "$_/" if (-d _) && !m!/\z!;
+        s!.+/(.+)!$1!;
+        push @words, $_;
     }
 
     complete_array(array=>\@words);
