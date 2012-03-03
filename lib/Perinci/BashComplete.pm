@@ -224,8 +224,11 @@ sub complete_file {
         @all = grep { $_ ne '.' && $_ ne '..' } readdir($dh);
         closedir $dh;
     } else {
-        @all = grep {length} # strange, [glob(" ")] returns [""] instead of []
-            glob($word);
+        # must add wildcard char, glob() is convoluted. also {a,b} is
+        # interpreted by glob() (not so by bash file completion). also
+        # whitespace is interpreted by glob :(. later should replace with a
+        # saner one, like wildcard2re.
+        @all = grep {length} glob("$word*");
     }
 
     my @words;
