@@ -1,5 +1,12 @@
 Revision history for Perinci-BashComplete
 
+0.26     2012-03-07
+
+         No functional changes. Deal with test failure reports from CT (change
+         'replace $HOME with ~' test in t/_line_to_argv.t into a warning, as I
+         don't know the workaround yet).
+
+
 0.25     2012-03-04
 
          + [Fix] More fixes to complete_file() so it more closely resembles bash
