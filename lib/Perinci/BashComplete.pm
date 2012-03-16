@@ -246,7 +246,7 @@ sub complete_file {
     # this is a trick so that when completion is a single dir/, bash does not
     # insert a space but still puts the cursor after "/", just like when it's
     # doing dir completion.
-    if (@$w == 1 && $w->[0] =~ m!/!) { $w->[1] = "$w->[0] ";  }
+    if (@$w == 1 && $w->[0] =~ m!/\z!) { $w->[1] = "$w->[0] ";  }
 
     $w;
 }
