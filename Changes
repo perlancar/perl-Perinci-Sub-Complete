@@ -1,5 +1,20 @@
 Revision history for Perinci-BashComplete
 
+0.27     2012-03-16
+
+         [FIXES]
+
+         - file completion inserted "." on every file/dir on the current dir.
+
+         - file completion cut intermediate dirs ("dir/a" completed into ["aa",
+           "ab"] instead of ["dir/aa", "dir/ab"]
+
+         [ENHANCEMENTS]
+
+         - Add trick in dir completion so that a single "dir/" match won't cause
+           bash to insert space after the "/".
+
+
 0.26     2012-03-07
 
          No functional changes. Deal with test failure reports from CT (change
