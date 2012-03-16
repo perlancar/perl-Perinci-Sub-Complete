@@ -37,12 +37,13 @@ sub test_complete {
     my $name = $args{name} // $args{word};
     my $res = complete_array(
         word=>$args{word}, array=>$args{array});
-    is_deeply($res, $args{result}, "$name (result)") or explain($res);
+    is_deeply($res, $args{result}, "$name (result)")
+        or diag explain($res);
     if ($args{result_ci}) {
         my $res_ci = complete_array(
             word=>$args{word}, array=>$args{array}, ci=>1);
         is_deeply($res_ci, $args{result_ci}, "$name (result_ci)")
-            or explain($res_ci);
+            or diag explain($res_ci);
     }
 }
 
