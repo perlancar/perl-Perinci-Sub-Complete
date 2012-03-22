@@ -1,5 +1,12 @@
 Revision history for Perinci-BashComplete
 
+0.28     2012-03-22
+
+         - Support with.dot function arguments
+
+         - Normalize --foo_bar into --foo-bar
+
+
 0.27     2012-03-16
 
          [FIXES]
