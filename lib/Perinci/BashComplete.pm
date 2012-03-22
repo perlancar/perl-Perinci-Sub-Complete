@@ -621,6 +621,7 @@ sub bash_complete_riap_func_arg {
                 push @a, $_ for keys %{$as->{cmdline_aliases}};
             }
             for my $a (@a) {
+                $a =~ s/[_.]/-/g;
                 my @w;
                 my $type = $as->{schema}[0];
                 if ($type eq 'bool' && length($a) > 1 &&

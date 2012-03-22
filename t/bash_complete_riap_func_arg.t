@@ -72,6 +72,16 @@ $SPEC{f3} = {
 };
 sub f3 { [200,"OK"] }
 
+# for testing special argument names
+$SPEC{f4} = {
+    v => 1.1,
+    args => {
+        foo_bar   => {schema => "str"},
+        "foo.baz" => {schema => "str"},
+    },
+};
+sub f4 { [200,"OK"] }
+
 package main;
 
 use File::Which qw(which);
@@ -311,6 +321,14 @@ test_complete(
     comp_line   => 'CMD a e -',
     comp_point0 => '         ^',
     result      => [qw(-a -b)],
+);
+
+test_complete(
+    name        => 'special argument names',
+    args        => {url=>'/Test/Perinci/BashComplete/f4'},
+    comp_line   => 'CMD --f',
+    comp_point0 => '       ^',
+    result      => [qw(--foo-bar --foo-baz)],
 );
 
 # XXX test ENV
