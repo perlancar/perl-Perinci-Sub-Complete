@@ -634,9 +634,16 @@ sub bash_complete_riap_func_arg {
             }
         }
 
+        my $special_opts = [];
+        my $ff = $meta->{features} // {};
+        if ($ff->{dry_run}) {
+            push @$special_opts, ['--dry-run'];
+        }
+
         my $common_opts = $args{common_opts} // [['--help', '-h', '-?']];
+
       CO:
-        for my $co (@$common_opts) {
+        for my $co (@$special_opts, @$common_opts) {
             if (ref($co) eq 'ARRAY') {
                 for (@$co) { next CO if $_ ~~ @$words || $_ ~~ @words }
                 push @words, @$co;

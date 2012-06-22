@@ -82,6 +82,14 @@ $SPEC{f4} = {
 };
 sub f4 { [200,"OK"] }
 
+# for testing special option: --dry-run
+$SPEC{sp1} = {
+    v => 1.1,
+    args => {},
+    features => {dry_run=>1},
+};
+sub sp1 { [200,"OK"] }
+
 package main;
 
 use File::Which qw(which);
@@ -329,6 +337,14 @@ test_complete(
     comp_line   => 'CMD --f',
     comp_point0 => '       ^',
     result      => [qw(--foo-bar --foo-baz)],
+);
+
+test_complete(
+    name        => 'special option: dry-run',
+    args        => {url=>'/Test/Perinci/BashComplete/sp1'},
+    comp_line   => 'CMD --d',
+    comp_point0 => '       ^',
+    result      => [qw(--dry-run)],
 );
 
 # XXX test ENV
