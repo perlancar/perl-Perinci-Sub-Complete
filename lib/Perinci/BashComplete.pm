@@ -667,14 +667,14 @@ sub bash_complete_riap_func_arg {
 
 =head1 SYNOPSIS
 
- # require'd by Sub::Spec::CmdLine when bash completion is enabled
+ # require'd by Perinci::CmdLine when bash completion is enabled
 
 
 =head1 DESCRIPTION
 
 This module provides functionality for doing bash completion. It is meant to be
-used by L<Sub::Spec::CmdLine>, but nevertheless some routines are reusable
-outside it.
+used by L<Perinci::CmdLine>, but nevertheless some routines are reusable outside
+it.
 
 
 =head1 FUNCTIONS
