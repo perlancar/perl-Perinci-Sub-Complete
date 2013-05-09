@@ -428,7 +428,9 @@ _
             schema=>['any*' => {
                 of => [
                     'code*',
-                    ['hash*'=>{values=>'code*'}],
+                    ['hash*'=>{
+                        #values=>'code*', # temp: disabled, not supported yet by Data::Sah
+                    }],
                 ]}],
         },
         common_opts => {
