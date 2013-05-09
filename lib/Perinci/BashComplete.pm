@@ -428,7 +428,7 @@ _
             schema=>['any*' => {
                 of => [
                     'code*',
-                    ['hash*'=>{values_of=>'code*'}],
+                    ['hash*'=>{values=>'code*'}],
                 ]}],
         },
         common_opts => {
