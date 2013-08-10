@@ -1,5 +1,13 @@
 Revision history for Perinci-BashComplete
 
+0.30     2013-08-10 (SHARYANTO)
+
+         [ENHANCEMENTS]
+
+         - Allow other line parser to be used, e.g. one that doesn't call out to
+           bash (currently undocumented).
+
+
 0.29     2012-06-22 (SHARYANTO)
 
          [ENHANCEMENTS]

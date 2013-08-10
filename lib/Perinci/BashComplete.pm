@@ -670,6 +670,8 @@ sub bash_complete_riap_func_arg {
 1;
 # ABSTRACT: Bash completion routines for function & function argument over Riap
 
+=for Pod::Coverage ^(.+)$
+
 =head1 SYNOPSIS
 
  # require'd by Perinci::CmdLine when bash completion is enabled
