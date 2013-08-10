@@ -1,6 +1,6 @@
 package Perinci::BashComplete;
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 use Log::Any '$log';
@@ -51,8 +51,11 @@ sub _line_to_argv {
 
 # parse COMP_LINE and COMP_POINT
 sub _parse_request {
-    my ($line, $point) = @_;
+    my ($line, $point, $opts) = @_;
     $log->tracef("-> _parse_request(%s, %s)", $line, $point);
+    $opts //= {};
+    $opts->{parse_line_sub} //= \&_line_to_argv;
+
 
     $line  //= $ENV{COMP_LINE};
     $point //= $ENV{COMP_POINT};
@@ -61,7 +64,7 @@ sub _parse_request {
     my $left  = substr($line, 0, $point);
     my @left;
     if (length($left)) {
-        @left = _line_to_argv($left);
+        @left = $opts->{parse_line_sub}->($left);
         # shave off $0
         substr($left, 0, length($left[0])) = "";
         $left =~ s/^\s+//;
@@ -72,7 +75,7 @@ sub _parse_request {
     my @right;
     if (length($right)) {
         $right =~ s/^\S+//;
-        @right = _line_to_argv($right) if length($right);
+        @right = $opts->{parse_line_sub}->($right) if length($right);
     }
     $log->tracef("left=q(%s), \@left=%s, right=q(%s), \@right=%s",
                  $left, \@left, $right, \@right);
