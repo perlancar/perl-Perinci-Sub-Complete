@@ -280,7 +280,7 @@ _
             summary => 'Base URL, should point to a package code entity',
             description => <<'_',
 
-Examples would be: '/' (or 'pm:/'), '/Company/API/', 'http://example.com/api/'
+Examples would be: '/' (or 'pl:/'), '/Company/API/', 'http://example.com/api/'
 
 _
             schema=>'str*',
@@ -362,7 +362,7 @@ _
             description => <<'_',
 
 Examples would be: '/Perinci/Examples/gen_array' (or
-'pm:/Perinci/Examples/gen_array') or 'http://example.com/api/some_func'
+'pl:/Perinci/Examples/gen_array') or 'http://example.com/api/some_func'
 
 _
             schema=>'str*',
