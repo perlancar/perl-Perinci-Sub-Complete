@@ -94,7 +94,7 @@ package main;
 
 use File::Which qw(which);
 use Perinci::Access;
-use Perinci::Access::InProcess;
+use Perinci::Access::Perl;
 use Perinci::BashComplete qw(bash_complete_riap_func_arg);
 use Test::More;
 
@@ -356,13 +356,7 @@ done_testing();
 sub test_complete {
     my (%args) = @_;
     #$log->tracef("args=%s", \%args);
-    state $pa;
-    unless ($pa) {
-        my $paip = Perinci::Access::InProcess->new(load=>0);
-        $pa = Perinci::Access->new(
-            handlers=>{pm=>$paip}
-        );
-    }
+    state $pa = Perinci::Access->new;
 
     my $line  = $args{comp_line};
     my $point = index($args{comp_point0}, '^');
@@ -387,4 +381,3 @@ sub test_complete {
         done_testing();
     };
 }
-
