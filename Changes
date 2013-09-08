@@ -1,5 +1,18 @@
 Revision history for Perinci-BashComplete
 
+0.31     2013-09-08 (SHARYANTO)
+
+         - No functional changes. Remove references to Perinci::Access::InProcess.
+
+
+0.30     2013-08-10 (SHARYANTO)
+
+         [ENHANCEMENTS]
+
+         - Allow other line parser to be used, e.g. one that doesn't call out to
+           bash (currently undocumented).
+
+
 0.30     2013-08-10 (SHARYANTO)
 
          [ENHANCEMENTS]
@@ -39,161 +52,161 @@ Revision history for Perinci-BashComplete
 
 0.26     2012-03-07 (SHARYANTO)
 
-         No functional changes. Deal with test failure reports from CT (change
-         'replace $HOME with ~' test in t/_line_to_argv.t into a warning, as I
-         don't know the workaround yet).
+         - No functional changes. Deal with test failure reports from CT (change
+           'replace $HOME with ~' test in t/_line_to_argv.t into a warning, as I
+           don't know the workaround yet).
 
 
 0.25     2012-03-04 (SHARYANTO)
 
-         + [Fix] More fixes to complete_file() so it more closely resembles bash
-         (symlink traversal is still different though).
+         [BUG FIXES]
+
+         - More fixes to complete_file() so it more closely resembles bash
+           (symlink traversal is still different though).
 
 
 0.24     2012-03-04 (SHARYANTO)
 
-         + [Fix] complete_file() now behaves more like bash (though not nearly
-         so, due to glob()'s quirks): First it works with files/dirs outside
-         curdir. When word is '' or ends with '/', it uses readdir() to include
-         dotfiles. Otherwise it treats word as wildcard and glob() it.
+         [BUG FIXES]
+
+         - complete_file() now behaves more like bash (though not nearly
+           so, due to glob()'s quirks): First it works with files/dirs outside
+           curdir. When word is '' or ends with '/', it uses readdir() to
+           include dotfiles. Otherwise it treats word as wildcard and glob() it.
 
 
 0.23     2012-03-03 (SHARYANTO)
 
-         No functional changes. Change implementation of _line_to_argv() from
-         calling Perl binary and dumping @ARGV, to using bash's own "$@". On my
-         Atom N570 netbook, this shaves time from about 0.1s to 0.03s.
+         - No functional changes. Change implementation of _line_to_argv() from
+           calling Perl binary and dumping @ARGV, to using bash's own "$@". On
+           my Atom N570 netbook, this shaves time from about 0.1s to 0.03s.
 
 
 0.22     2012-02-28 (SHARYANTO)
 
-         No functional changes. Fix to avoid numerous CT failure reports
-         (calling perl binary using $^X instead of the hardcoded "perl"). I
-         haven't quoted $^X, hope that won't cause much trouble though.
+         - No functional changes. Fix to avoid numerous CT failure reports
+           (calling perl binary using $^X instead of the hardcoded "perl"). I
+           haven't quoted $^X, hope that won't cause much trouble though.
 
 
 0.21     2012-02-28 (SHARYANTO)
 
-         Handle argument name completion of one-letter args and cmdline_aliases.
+         - Handle argument name completion of one-letter args and cmdline_aliases.
 
 
 0.20     2012-02-27 (SHARYANTO)
 
-         No functional changes. Make _line_to_argv() report errors (lots of
-         failure reports from CPAN Testers with apparently undef result from
-         _line_to_argv()).
+         - No functional changes. Make _line_to_argv() report errors (lots of
+           failure reports from CPAN Testers with apparently undef result from
+           _line_to_argv()).
 
 
 0.19     2012-02-23 (SHARYANTO)
 
-         Rename distribution from Sub-Spec-BashComplete to Perinci-BashComplete.
-         Follow Rinci v1.1 specification.
+         - Rename distribution from Sub-Spec-BashComplete to Perinci-BashComplete.
+           Follow Rinci v1.1 specification.
 
 
 0.18     2011-11-23 (SHARYANTO)
 
-         No functional changes. _parse_schema() moved from Data::Sah::Util to
-         normalize_schema() in Data::Sah.
+         - No functional changes. _parse_schema() moved from Data::Sah::Util to
+           normalize_schema() in Data::Sah.
 
 
 0.17     2011-10-31 (SHARYANTO)
 
-         No functional changes. _parse_schema() is moved from Sub::Spec::Utils
-         to Data::Sah::Util.
+         - No functional changes. _parse_schema() is moved from Sub::Spec::Utils
+           to Data::Sah::Util.
 
 
 0.16     2011-08-25 (SHARYANTO)
 
-         No functional changes. Adjust to Sub::Spec 0.15.
+         - No functional changes. Adjust to Sub::Spec 0.15.
 
 
 0.15     2011-07-26 (SHARYANTO)
 
-         No functional changes. Adjust to use the new Sub::Spec::GetArgs::Argv.
+         - No functional changes. Adjust to use the new Sub::Spec::GetArgs::Argv.
 
 
 0.14     2011-05-31 (SHARYANTO)
 
-         No functional changes.
-
-         [ETC]
-
-         - Skip tests on systems which don't have bash.
+         - No functional changes. Skip tests on systems which don't have bash.
 
 
 0.13     2011-02-23 (SHARYANTO)
 
-         Add missing dependency: Log::Any [CT].
+         - Add missing dependency: Log::Any [CT].
 
 
 0.12     2011-02-23 (SHARYANTO)
 
-         Add missing dependency: Sub::Spec::CmdLine [CT].
+         - Add missing dependency: Sub::Spec::CmdLine [CT].
 
 
 0.11     2011-02-22 (SHARYANTO)
 
-         Use Sub::Spec::Utils.
+         - Use Sub::Spec::Utils.
 
 
 0.10     2011-02-19 (SHARYANTO)
 
-         Incompatible change: arg_complete & custom_completer now expected to
-         return arrayref instead of list.
+         - Incompatible change: arg_complete & custom_completer now expected to
+           return arrayref instead of list.
 
-         More fixes for remaining_words for custom_completer.
+         - More fixes for remaining_words for custom_completer.
 
 
 0.09     2011-02-18 (SHARYANTO)
 
-         Handle backspaced whitespace.
+         - Handle backspaced whitespace.
 
-         Don't escape output (let completer program do it) to avoid double
-         escaping.
+         - Don't escape output (let completer program do it) to avoid double
+           escaping.
 
-         Fix cword & remaining_words for custom_completer.
+         - Fix cword & remaining_words for custom_completer.
 
 
 0.08     2011-02-18 (SHARYANTO)
 
-         Backslash-escape output.
+         - Backslash-escape output.
 
-         Spec: cmdline_aliases renamed to arg_aliases.
+         - Spec: cmdline_aliases renamed to arg_aliases.
 
 
 0.07     2011-02-17 (SHARYANTO)
 
-         bash_complete_spec_arg(): Also add --nofoo completion for bool
-         cmdline_aliases.
+         - bash_complete_spec_arg(): Also add --nofoo completion for bool
+           cmdline_aliases.
 
 
 0.06     2011-02-17 (SHARYANTO)
 
-         bash_complete_spec_arg(): Add 'custom_completer' option, parse
-         'cmdline_aliases' in arg spec.
+         - bash_complete_spec_arg(): Add 'custom_completer' option, parse
+           'cmdline_aliases' in arg spec.
 
 
 0.05     2011-02-17 (SHARYANTO)
 
-         Fix cword counting.
+         - Fix cword counting.
 
 
 0.04     2011-02-16 (SHARYANTO)
 
-         Small fix on detecting arg name/value.
+         - Small fix on detecting arg name/value.
 
 
 0.03     2011-02-16 (SHARYANTO)
 
-         Complete arg name instead of value if user type '-' (indicates he/she
-         wants arg name).
+         - Complete arg name instead of value if user type '-' (indicates he/she
+           wants arg name).
 
 
 0.02     2011-02-16 (SHARYANTO)
 
-         Fix dependency version (requires Sub::Spec::CmdLine 0.10+).
+         - Fix dependency version (requires Sub::Spec::CmdLine 0.10+).
 
 
 0.01     2011-02-16 (SHARYANTO)
 
-         First release.
+         - First release.

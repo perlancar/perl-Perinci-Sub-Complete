@@ -94,7 +94,6 @@ package main;
 
 use File::Which qw(which);
 use Perinci::Access;
-use Perinci::Access::Perl;
 use Perinci::BashComplete qw(bash_complete_riap_func_arg);
 use Test::More;
 
