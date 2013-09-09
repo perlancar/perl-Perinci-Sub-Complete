@@ -3,6 +3,7 @@ package Perinci::BashComplete;
 use 5.010001;
 use strict;
 use warnings;
+use experimental 'smartmatch';
 use Log::Any '$log';
 
 # VERSION
