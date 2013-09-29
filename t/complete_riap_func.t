@@ -5,7 +5,7 @@ use strict;
 use warnings;
 #use Log::Any '$log';
 
-use Test::More 0.96;
+use Test::More 0.98;
 
 use Perinci::BashComplete qw(complete_riap_func);
 
