@@ -176,7 +176,7 @@ test_complete(
 test_complete(
     name        => 'complete arg value (arg "custom_arg_completer" HoCode)',
     args        => {meta=>$meta,
-                    custom_arg_completer => {str1=>sub {qw(a b c)}}},
+                    custom_arg_completer => {str1=>sub {[qw/a b c/]}}},
     comp_line   => 'CMD --str1 ',
     comp_point0 => '           ^',
     result      => [qw(a b c)],
@@ -185,7 +185,7 @@ test_complete(
     name        => 'complete arg value (arg "custom_arg_completer" HoCode,'.
         ' no match)',
     args        => {meta=>$meta,
-                    custom_arg_completer => {str2=>sub {qw(a b c)}}},
+                    custom_arg_completer => {str2=>sub {[qw(a b c)]}}},
     comp_line   => 'CMD --str1 ',
     comp_point0 => '           ^',
     result      => [qw(apple apricot cherry cranberry)],
@@ -193,7 +193,7 @@ test_complete(
 test_complete(
     name        => 'complete arg value (opts "custom_arg_completer" code)',
     args        => {meta=>$meta,
-                    custom_arg_completer => sub {qw(a b c)}},
+                    custom_arg_completer => sub {[qw(a b c)]}},
     comp_line   => 'CMD --str1 ',
     comp_point0 => '           ^',
     result      => [qw(a b c)],
