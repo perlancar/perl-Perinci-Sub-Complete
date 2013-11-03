@@ -1,5 +1,18 @@
 Revision history for Perinci-Sub-Complete
 
+0.33     2013-11-04 (SHARYANTO)
+
+         [ENHANCEMENTS]
+
+         - Allow 'custom_arg_completer' to decline with undef, just like
+           'custom_completer'.
+
+         [INCOMPATIBLE CHANGES]
+
+         - 'custom_arg_completer' is now expected to return arrayref instead of
+           list, just like the other completion routines.
+
+
 0.32     2013-11-04 (SHARYANTO)
 
          [REFACTORING]
