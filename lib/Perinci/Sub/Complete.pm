@@ -155,6 +155,11 @@ Fallback to completing argument values from information in Rinci metadata (using
 
 _
     args => {
+        meta => {
+            summary => 'Rinci function metadata',
+            schema => 'hash*',
+            req => 1,
+        },
         words => {
             summary => 'Command-line, broken as words',
             schema => ['array*' => {of=>'str*'}],
