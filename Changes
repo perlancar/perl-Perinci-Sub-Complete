@@ -1,12 +1,23 @@
 Revision history for Perinci-Sub-Complete
 
-0.34     2013-11-05 (SHARYANTO) (not yet released)
+0.34     2013-11-05 (SHARYANTO)
 
          [ENHANCEMENTS]
+
+         - shell_complete_arg(): Accept 'extra_completer_args' argument to pass
+           to custom completion routines.
 
          - Pass 'parent_args' argument to all custom completion routines
            (previously only 'custom_completer' gets it, now
            'custom_arg_completer' and 'completion' arg spec also get it).
+
+         - complete_arg_val(): observe 'is' clause.
+
+         - complete_arg_val(): complete [0, 1] for bool type.
+
+         [BUG FIXES]
+
+         - A few bug fixes.
 
 
 0.33     2013-11-04 (SHARYANTO)
