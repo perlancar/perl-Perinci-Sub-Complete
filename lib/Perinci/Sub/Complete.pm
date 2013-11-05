@@ -18,6 +18,7 @@ use SHARYANTO::Complete::Util qw(
 require Exporter;
 our @ISA       = qw(Exporter);
 our @EXPORT_OK = qw(
+                       complete_arg_val
                        shell_complete_arg
                );
 our %SPEC;
