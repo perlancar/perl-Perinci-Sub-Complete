@@ -44,6 +44,10 @@ $SPEC{complete_arg_val} = {
             summary => 'Whether to be case-insensitive',
             schema => ['bool*', default => 0],
         },
+        parent_args => {
+            summary => 'To pass parent arguments to completion routines',
+            schema  => 'hash',
+        },
     },
     result_naked => 1,
 };
@@ -62,7 +66,8 @@ sub complete_arg_val {
     eval { # completion sub can die, etc.
 
         if ($arg_p->{completion}) {
-            $words = $arg_p->{completion}(word=>$word, ci=>$ci);
+            $words = $arg_p->{completion}->(
+                word=>$word, ci=>$ci, parent_args=>\%args);
             die "Completion sub does not return array"
                 unless ref($words) eq 'ARRAY';
             return;
@@ -343,21 +348,27 @@ sub shell_complete_arg {
             if (ref($cac) eq 'HASH') {
                 if ($cac->{$arg}) {
                     $log->tracef("calling 'custom_arg_completer'->{%s}", $arg);
-                    $res = $cac->{$arg}->(word => $word, arg => $arg);
+                    $res = $cac->{$arg}->(
+                        word => $word, arg => $arg, parent_args => \%args,
+                    );
                     if ($res) {
                         return complete_array(word => $word, array => $res);
                     }
                 }
             } else {
                 $log->tracef("calling 'custom_arg_completer' (arg=%s)", $arg);
-                $res = $cac->(word => $word, arg => $arg);
+                $res = $cac->(
+                    word => $word, arg => $arg, parent_args => \%args);
                 if ($res) {
                     return complete_array(word => $word, array => $res);
                 }
             }
         }
 
-        $res = complete_arg_val(meta=>$meta, arg=>$arg, word=>$word);
+        $res = complete_arg_val(
+            meta=>$meta, arg=>$arg, word=>$word,
+            parent_args=>\%args,
+        );
 
         return $res if $res && @$res;
 
