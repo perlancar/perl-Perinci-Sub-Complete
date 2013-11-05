@@ -369,8 +369,7 @@ sub shell_complete_arg {
             meta=>$meta, arg=>$arg, word=>$word,
             parent_args=>\%args,
         );
-
-        return $res if $res && @$res;
+        return $res if $res;
 
         # fallback to file
         $log->tracef("completing arg value from file (fallback)");
