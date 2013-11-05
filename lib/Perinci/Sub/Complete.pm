@@ -352,7 +352,8 @@ sub shell_complete_arg {
         $word = $words->[$cword] = $2;
         $which = 'value';
     }
-    $log->tracef("we should complete arg $which, arg=%s, word=%s", $arg, $word);
+    $log->tracef("we should complete arg $which, arg=<%s>, word=<%s>",
+                 $arg, $word);
 
     if ($args{custom_completer}) {
         $log->tracef("calling 'custom_completer'");
@@ -384,7 +385,8 @@ sub shell_complete_arg {
                 if ($cac->{$arg}) {
                     $log->tracef("calling 'custom_arg_completer'->{%s}", $arg);
                     $res = $cac->{$arg}->(
-                        word => $word, arg => $arg, parent_args => \%args,
+                        word=>$word, arg=>$arg, args=>$args,
+                        parent_args=>\%args,
                     );
                     if ($res) {
                         return complete_array(word => $word, array => $res);
@@ -393,7 +395,7 @@ sub shell_complete_arg {
             } else {
                 $log->tracef("calling 'custom_arg_completer' (arg=%s)", $arg);
                 $res = $cac->(
-                    word => $word, arg => $arg, parent_args => \%args);
+                    word=>$word, arg=>$arg, args=>$args, parent_args=>\%args);
                 if ($res) {
                     return complete_array(word => $word, array => $res);
                 }
