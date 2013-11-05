@@ -63,6 +63,8 @@ sub complete_arg_val {
     my $ci   = $args{ci} // 0;
     my $word = $args{word} // '';
 
+    # XXX reject if meta's v is not 1.1
+
     my $args_p = $meta->{args} // {};
     my $arg_p = $args_p->{$arg} or return [];
 
@@ -78,8 +80,15 @@ sub complete_arg_val {
         }
 
         my $sch = $arg_p->{schema};
+        return unless $sch;
+
+        # XXX normalize schema if not normalized
 
         my ($type, $cs) = @{$sch};
+        if ($cs->{is}) {
+            $words = [$cs->{is}];
+            return;
+        }
         if ($cs->{in}) {
             $words = $cs->{in};
             return;
