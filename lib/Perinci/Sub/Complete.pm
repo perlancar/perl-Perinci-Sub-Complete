@@ -94,7 +94,7 @@ sub complete_arg_val {
             return;
         }
 
-        if ($type =~ /^int\*?$/) {
+        if ($type =~ /\Aint\*?\z/) {
             my $limit = 100;
             if ($cs->{between} &&
                     $cs->{between}[0] - $cs->{between}[0] <= $limit) {
@@ -121,6 +121,9 @@ sub complete_arg_val {
                 $words = [$cs->{min}+1 .. $cs->{max}-1];
                 return;
             }
+        } elsif ($type =~ /\Abool\*?\z/) {
+            $words = [0, 1];
+            return;
         }
 
         $words = [];
