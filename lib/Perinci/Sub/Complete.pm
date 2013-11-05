@@ -45,6 +45,11 @@ $SPEC{complete_arg_val} = {
             summary => 'Whether to be case-insensitive',
             schema => ['bool*', default => 0],
         },
+        args => {
+            summary => 'Collected arguments so far, '.
+                'will be passed to completion routines',
+            schema  => 'hash',
+        },
         parent_args => {
             summary => 'To pass parent arguments to completion routines',
             schema  => 'hash',
@@ -73,7 +78,7 @@ sub complete_arg_val {
 
         if ($arg_p->{completion}) {
             $words = $arg_p->{completion}->(
-                word=>$word, ci=>$ci, parent_args=>\%args);
+                word=>$word, ci=>$ci, args=>$args{args}, parent_args=>\%args);
             die "Completion sub does not return array"
                 unless ref($words) eq 'ARRAY';
             return;
@@ -205,8 +210,9 @@ Code will be called with a hash argument, with these keys: `which` (a string
 with value `name` or `value` depending on whether we should complete argument
 name or value), `words` (an array, the command line split into words), `cword`
 (int, position of word in `words`), `word` (the word to be completed),
-`parent_args` (hash), `remaining_words` (array, slice of `words` after `cword`),
-`meta` (the Rinci function metadata).
+`parent_args` (hash, arguments given to `shell_complete_arg()`), `args` (hash,
+parsed function arguments from `words`) `remaining_words` (array, slice of
+`words` after `cword`), `meta` (the Rinci function metadata).
 
 Code should return an arrayref of completion, or `undef` to declare declination,
 on which case completion will resume using the standard builtin routine.
@@ -228,7 +234,7 @@ instead. Refer to function description to see when this routine is called.
 Code will be called with hash arguments containing these keys: `word` (string,
 the word to be completed), `arg` (string, the argument name that we are
 completing the value of), `args` (hash, the arguments that have been collected
-so far).
+so far), `parent_args`.
 
 A use-case for using this option: getting argument value from Riap client using
 the `complete_arg_val` action. This allows getting completion from remote
@@ -358,7 +364,8 @@ sub shell_complete_arg {
             words => $words,
             cword => $newcword,
             word  => $word,
-            parent_args => $args,
+            args  => $args,
+            parent_args => \%args,
             meta  => $meta,
             remaining_words => $remaining_words,
         );
@@ -395,7 +402,7 @@ sub shell_complete_arg {
 
         $res = complete_arg_val(
             meta=>$meta, arg=>$arg, word=>$word,
-            parent_args=>\%args,
+            args=>$args, parent_args=>\%args,
         );
         return $res if $res;
 
