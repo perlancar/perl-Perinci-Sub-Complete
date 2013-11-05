@@ -50,6 +50,9 @@ $SPEC{complete_arg_val} = {
         },
     },
     result_naked => 1,
+    result => {
+        schema => 'array*', # XXX of => str*
+    },
 };
 sub complete_arg_val {
     my %args = @_;
@@ -241,6 +244,9 @@ _
         },
     },
     result_naked => 1,
+    result => {
+        schema => 'array*', # XXX of => str*
+    },
 };
 sub shell_complete_arg {
     require Perinci::Sub::GetArgs::Argv;
