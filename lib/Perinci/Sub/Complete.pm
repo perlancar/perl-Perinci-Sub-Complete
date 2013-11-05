@@ -242,6 +242,10 @@ _
                 default=>[['--help', '-?', '-h']],
             }],
         },
+        extra_completer_args => {
+            summary => 'Arguments to pass to custom completion routines',
+            schema  => 'hash*',
+        },
     },
     result_naked => 1,
     result => {
