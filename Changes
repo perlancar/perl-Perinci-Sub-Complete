@@ -1,5 +1,13 @@
 Revision history for Perinci-Sub-Complete
 
+0.35     2013-11-08 (SHARYANTO)
+
+         [BUG FIXES]
+
+         - No functional changes. Avoid CT failure reports by forcing
+           Perinci::Sub::Wrapper version.
+
+
 0.34     2013-11-05 (SHARYANTO)
 
          [ENHANCEMENTS]
