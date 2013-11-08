@@ -57,84 +57,105 @@ $SPEC{complete_arg_val} = {
     },
     result_naked => 1,
     result => {
-        schema => 'array*', # XXX of => str*
+        schema => 'array', # XXX of => str*
     },
 };
 sub complete_arg_val {
     my %args = @_;
 
-    my $meta = $args{meta} or return [];
-    my $arg  = $args{arg} or return [];
+    my $meta = $args{meta} or do {
+        $log->tracef("meta is not supplied, declining");
+        return undef;
+    };
+    my $arg  = $args{arg} or do {
+        $log->tracef("arg is not supplied, declining");
+        return undef;
+    };
     my $ci   = $args{ci} // 0;
     my $word = $args{word} // '';
 
     # XXX reject if meta's v is not 1.1
 
     my $args_p = $meta->{args} // {};
-    my $arg_p = $args_p->{$arg} or return [];
+    my $arg_p = $args_p->{$arg} or do {
+        $log->tracef("arg '$arg' is not specified in meta, declining");
+        return undef;
+    };
 
     my $words;
     eval { # completion sub can die, etc.
 
         if ($arg_p->{completion}) {
+            $log->tracef("calling arg spec's completion");
             $words = $arg_p->{completion}->(
                 word=>$word, ci=>$ci, args=>$args{args}, parent_args=>\%args);
             die "Completion sub does not return array"
                 unless ref($words) eq 'ARRAY';
-            return;
+            return; # from eval
         }
 
         my $sch = $arg_p->{schema};
-        return unless $sch;
+        unless ($sch) {
+            $log->tracef("arg spec does not specify schema, declining");
+            return; # from eval
+        };
 
         # XXX normalize schema if not normalized
 
         my ($type, $cs) = @{$sch};
         if ($cs->{is}) {
+            $log->tracef("completing from schema 'is' clause");
             $words = [$cs->{is}];
-            return;
+            return; # from eval
         }
         if ($cs->{in}) {
+            $log->tracef("completing from schema 'in' clause");
             $words = $cs->{in};
-            return;
+            return; # from eval
         }
 
         if ($type =~ /\Aint\*?\z/) {
             my $limit = 100;
             if ($cs->{between} &&
                     $cs->{between}[0] - $cs->{between}[0] <= $limit) {
+                $log->tracef("completing from schema 'between' clause");
                 $words = [$cs->{between}[0] .. $cs->{between}[1]];
-                return;
+                return; # from eval
             } elsif ($cs->{xbetween} &&
                     $cs->{xbetween}[0] - $cs->{xbetween}[0] <= $limit) {
+                $log->tracef("completing from schema 'xbetween' clause");
                 $words = [$cs->{xbetween}[0]+1 .. $cs->{xbetween}[1]-1];
-                return;
+                return; # from eval
             } elsif (defined($cs->{min}) && defined($cs->{max}) &&
                          $cs->{max}-$cs->{min} <= $limit) {
+                $log->tracef("completing from schema 'min' & 'max' clauses");
                 $words = [$cs->{min} .. $cs->{max}];
-                return;
+                return; # from eval
             } elsif (defined($cs->{min}) && defined($cs->{xmax}) &&
                          $cs->{xmax}-$cs->{min} <= $limit) {
+                $log->tracef("completing from schema 'min' & 'xmax' clauses");
                 $words = [$cs->{min} .. $cs->{xmax}-1];
-                return;
+                return; # from eval
             } elsif (defined($cs->{xmin}) && defined($cs->{max}) &&
                          $cs->{max}-$cs->{xmin} <= $limit) {
+                $log->tracef("completing from schema 'xmin' & 'max' clauses");
                 $words = [$cs->{xmin}+1 .. $cs->{max}];
-                return;
+                return; # from eval
             } elsif (defined($cs->{xmin}) && defined($cs->{xmax}) &&
                          $cs->{xmax}-$cs->{xmin} <= $limit) {
+                $log->tracef("completing from schema 'xmin' & 'xmax' clauses");
                 $words = [$cs->{min}+1 .. $cs->{max}-1];
-                return;
+                return; # from eval
             }
         } elsif ($type =~ /\Abool\*?\z/) {
+            $log->tracef("completing from possible [0, 1] values of bool");
             $words = [0, 1];
-            return;
+            return; # from eval
         }
-
-        $words = [];
     };
     $log->debug("Completion died: $@") if $@;
-    return [] unless $words;
+    $log->tracef("no completion from schema possible, declining");
+    return undef unless $words;
     complete_array(array=>$words, word=>$word, ci=>$ci);
 }
 
@@ -370,10 +391,8 @@ sub shell_complete_arg {
             meta  => $meta,
             remaining_words => $remaining_words,
         );
-        if (!$res) {
-            $log->tracef("custom_completer declined, will continue without");
-        } else {
-            $log->tracef("result from custom_completer: %s", $res);
+        $log->tracef("custom_completer returns %s", $res);
+        if ($res) {
             return complete_array(word=>$word, array=>$res);
         }
     }
@@ -388,6 +407,7 @@ sub shell_complete_arg {
                         word=>$word, arg=>$arg, args=>$args,
                         parent_args=>\%args,
                     );
+                    $log->tracef("custom_arg_completer returns %s", $res);
                     if ($res) {
                         return complete_array(word => $word, array => $res);
                     }
@@ -396,16 +416,19 @@ sub shell_complete_arg {
                 $log->tracef("calling 'custom_arg_completer' (arg=%s)", $arg);
                 $res = $cac->(
                     word=>$word, arg=>$arg, args=>$args, parent_args=>\%args);
+                $log->tracef("custom_arg_completer returns %s", $res);
                 if ($res) {
                     return complete_array(word => $word, array => $res);
                 }
             }
         }
 
+        $log->tracef("completing using complete_arg_val()");
         $res = complete_arg_val(
             meta=>$meta, arg=>$arg, word=>$word,
             args=>$args, parent_args=>\%args,
         );
+        $log->tracef("complete_arg_val() returns %s", $res);
         return $res if $res;
 
         # fallback to file
