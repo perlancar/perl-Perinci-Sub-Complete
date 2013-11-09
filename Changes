@@ -45,7 +45,9 @@ Revision history for Perinci-Sub-Complete
 
          [REFACTORING]
 
-         - Rename dist from Perinci-BashComplete to Perinci-Sub-Complete.
+         - Rename dist from Perinci-BashComplete to Perinci-Sub-Complete because
+           I want to extract non-Perinci-related routines to another module and
+           I want to support other shells (someday).
 
          - Split generic (non-Rinci/Riap-related) functions to
            SHARYANTO-Complete-Util.
