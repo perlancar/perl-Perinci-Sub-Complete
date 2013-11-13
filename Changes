@@ -1,5 +1,22 @@
 Revision history for Perinci-Sub-Complete
 
+0.36     2013-11-14 (SHARYANTO)
+
+         [ENHANCEMENTS]
+
+         - Implement argument element completion (Rinci 1.1.42).
+
+         - Add functions: complete_arg_elem, complete_from_schema.
+
+         [BUG FIXES]
+
+         - complete_arg_val() now returns undef when it can't find completion
+           from schema, so shell_complete_arg() can fallback to files.
+
+         - Complete greedy argument names, always (allow us to complete e.g.
+           --file F1 --file F2 etc).
+
+
 0.35     2013-11-08 (SHARYANTO)
 
          [BUG FIXES]
