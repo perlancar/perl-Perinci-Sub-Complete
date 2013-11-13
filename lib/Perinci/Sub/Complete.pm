@@ -18,10 +18,101 @@ use SHARYANTO::Complete::Util qw(
 require Exporter;
 our @ISA       = qw(Exporter);
 our @EXPORT_OK = qw(
+                       complete_from_schema
                        complete_arg_val
                        shell_complete_arg
                );
 our %SPEC;
+
+$SPEC{complete_from_schema} = {
+    v => 1.1,
+    summary => 'Complete a value from schema',
+    description => <<'_',
+
+Employ some heuristics to complete a value from Sah schema. For example, if
+schema is `[str => in => [qw/new open resolved rejected/]]`, then we can
+complete from the `in` clause. Or for something like `[int => between => [1,
+20]]` we can complete using values from 1 to 20.
+
+_
+    args => {
+        schema => {
+            summary => 'Must be normalized',
+            req => 1,
+        },
+        word => {
+            schema => [str => default => ''],
+            req => 1,
+        },
+        ci => {
+            schema => 'bool',
+        },
+    },
+};
+sub complete_from_schema {
+    my %args = @_;
+    my $sch  = $args{schema}; # must be normalized
+    my $word = $args{word} // "";
+    my $ci   = $args{ci};
+
+    my ($type, $cs) = @{$sch};
+
+    my $words;
+    eval {
+        if ($cs->{is}) {
+            $log->tracef("completing from 'is' clause");
+            $words = [$cs->{is}];
+            return; # from eval
+        }
+        if ($cs->{in}) {
+            $log->tracef("completing from 'in' clause");
+            $words = $cs->{in};
+            return; # from eval
+        }
+
+        if ($type =~ /\Aint\*?\z/) {
+            my $limit = 100;
+            if ($cs->{between} &&
+                    $cs->{between}[0] - $cs->{between}[0] <= $limit) {
+                $log->tracef("completing from 'between' clause");
+                $words = [$cs->{between}[0] .. $cs->{between}[1]];
+                return; # from eval
+            } elsif ($cs->{xbetween} &&
+                         $cs->{xbetween}[0] - $cs->{xbetween}[0] <= $limit) {
+                $log->tracef("completing from 'xbetween' clause");
+                $words = [$cs->{xbetween}[0]+1 .. $cs->{xbetween}[1]-1];
+                return; # from eval
+            } elsif (defined($cs->{min}) && defined($cs->{max}) &&
+                         $cs->{max}-$cs->{min} <= $limit) {
+                $log->tracef("completing from 'min' & 'max' clauses");
+                $words = [$cs->{min} .. $cs->{max}];
+                return; # from eval
+            } elsif (defined($cs->{min}) && defined($cs->{xmax}) &&
+                         $cs->{xmax}-$cs->{min} <= $limit) {
+                $log->tracef("completing from 'min' & 'xmax' clauses");
+                $words = [$cs->{min} .. $cs->{xmax}-1];
+                return; # from eval
+            } elsif (defined($cs->{xmin}) && defined($cs->{max}) &&
+                         $cs->{max}-$cs->{xmin} <= $limit) {
+                $log->tracef("completing from 'xmin' & 'max' clauses");
+                $words = [$cs->{xmin}+1 .. $cs->{max}];
+                return; # from eval
+            } elsif (defined($cs->{xmin}) && defined($cs->{xmax}) &&
+                         $cs->{xmax}-$cs->{xmin} <= $limit) {
+                $log->tracef("completing from 'xmin' & 'xmax' clauses");
+                $words = [$cs->{min}+1 .. $cs->{max}-1];
+                return; # from eval
+            }
+        } elsif ($type =~ /\Abool\*?\z/) {
+            $log->tracef("completing from possible [0, 1] values of bool");
+            $words = [0, 1];
+            return; # from eval
+        }
+    }; # eval
+
+    return undef unless $words;
+    complete_array(array=>$words, word=>$word, ci=>$ci);
+}
 
 $SPEC{complete_arg_val} = {
     v => 1.1,
@@ -102,60 +193,14 @@ sub complete_arg_val {
 
         # XXX normalize schema if not normalized
 
-        my ($type, $cs) = @{$sch};
-        if ($cs->{is}) {
-            $log->tracef("completing from schema 'is' clause");
-            $words = [$cs->{is}];
-            return; # from eval
-        }
-        if ($cs->{in}) {
-            $log->tracef("completing from schema 'in' clause");
-            $words = $cs->{in};
-            return; # from eval
-        }
-
-        if ($type =~ /\Aint\*?\z/) {
-            my $limit = 100;
-            if ($cs->{between} &&
-                    $cs->{between}[0] - $cs->{between}[0] <= $limit) {
-                $log->tracef("completing from schema 'between' clause");
-                $words = [$cs->{between}[0] .. $cs->{between}[1]];
-                return; # from eval
-            } elsif ($cs->{xbetween} &&
-                    $cs->{xbetween}[0] - $cs->{xbetween}[0] <= $limit) {
-                $log->tracef("completing from schema 'xbetween' clause");
-                $words = [$cs->{xbetween}[0]+1 .. $cs->{xbetween}[1]-1];
-                return; # from eval
-            } elsif (defined($cs->{min}) && defined($cs->{max}) &&
-                         $cs->{max}-$cs->{min} <= $limit) {
-                $log->tracef("completing from schema 'min' & 'max' clauses");
-                $words = [$cs->{min} .. $cs->{max}];
-                return; # from eval
-            } elsif (defined($cs->{min}) && defined($cs->{xmax}) &&
-                         $cs->{xmax}-$cs->{min} <= $limit) {
-                $log->tracef("completing from schema 'min' & 'xmax' clauses");
-                $words = [$cs->{min} .. $cs->{xmax}-1];
-                return; # from eval
-            } elsif (defined($cs->{xmin}) && defined($cs->{max}) &&
-                         $cs->{max}-$cs->{xmin} <= $limit) {
-                $log->tracef("completing from schema 'xmin' & 'max' clauses");
-                $words = [$cs->{xmin}+1 .. $cs->{max}];
-                return; # from eval
-            } elsif (defined($cs->{xmin}) && defined($cs->{xmax}) &&
-                         $cs->{xmax}-$cs->{xmin} <= $limit) {
-                $log->tracef("completing from schema 'xmin' & 'xmax' clauses");
-                $words = [$cs->{min}+1 .. $cs->{max}-1];
-                return; # from eval
-            }
-        } elsif ($type =~ /\Abool\*?\z/) {
-            $log->tracef("completing from possible [0, 1] values of bool");
-            $words = [0, 1];
-            return; # from eval
-        }
+        $log->tracef("completing using schema");
+        $words = complete_from_schema(schema=>$sch, word=>$word, ci=>$ci);
     };
     $log->debug("Completion died: $@") if $@;
-    $log->tracef("no completion from schema possible, declining");
-    return undef unless $words;
+    unless ($words) {
+        $log->tracef("no completion from metadata possible, declining");
+        return undef;
+    }
     complete_array(array=>$words, word=>$word, ci=>$ci);
 }
 
