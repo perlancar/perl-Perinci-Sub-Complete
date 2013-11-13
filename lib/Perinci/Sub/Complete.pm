@@ -678,13 +678,14 @@ sub shell_complete_arg {
     } elsif ($word eq '' || $word =~ /^--?/) {
         # which eq 'name'
 
-        # find completable args (the one that has not been mentioned)
+        # find completable args (the one that has not been mentioned or should
+        # always be mentioned)
 
         my @words;
       ARG:
         for my $a0 (keys %$args_p) {
-            next if exists $args->{$a0};
             my $as = $args_p->{$a0};
+            next if exists($args->{$a0}) && (!$as || !$as->{greedy});
             my @a;
             push @a, $a0;
             if ($as->{cmdline_aliases}) {

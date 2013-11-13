@@ -366,7 +366,7 @@ subtest "complete element value (schema)" => sub {
         args        => {meta=>$meta},
         comp_line   => 'CMD -',
         comp_point0 => '     ^',
-        result      => [qw(--help -? -h)],
+        result      => [qw(--arg --help -? -h)],
     );
     test_complete(
         args        => {meta=>$meta},
@@ -384,7 +384,14 @@ subtest "complete element value (schema)" => sub {
         args        => {meta=>$meta},
         comp_line   => 'CMD x -',
         comp_point0 => '       ^',
-        result      => [qw(--help -? -h)],
+        result      => [qw(--arg --help -? -h)],
+    );
+    test_complete(
+        name        => '--arg is always completeable',
+        args        => {meta=>$meta},
+        comp_line   => 'CMD --arg x --',
+        comp_point0 => '              ^',
+        result      => [qw(--arg --help)],
     );
 };
 
@@ -416,7 +423,7 @@ subtest "complete element value (arg spec's element_completion)" => sub {
         args        => {meta=>$meta},
         comp_line   => 'CMD -',
         comp_point0 => '     ^',
-        result      => [qw(--help -? -h)],
+        result      => [qw(--arg --help -? -h)],
     );
     test_complete(
         args        => {meta=>$meta},
@@ -434,7 +441,7 @@ subtest "complete element value (arg spec's element_completion)" => sub {
         args        => {meta=>$meta},
         comp_line   => 'CMD x -',
         comp_point0 => '       ^',
-        result      => [qw(--help -? -h)],
+        result      => [qw(--arg --help -? -h)],
     );
     # XXX test element_completion declines -> fallback to schema
 };
@@ -470,7 +477,7 @@ subtest "complete element value (custom_arg_element_completer HoC)" => sub {
         args        => {meta=>$meta, custom_arg_element_completer=>$caec},
         comp_line   => 'CMD -',
         comp_point0 => '     ^',
-        result      => [qw(--help -? -h)],
+        result      => [qw(--arg --help -? -h)],
     );
     test_complete(
         args        => {meta=>$meta, custom_arg_element_completer=>$caec},
@@ -488,7 +495,7 @@ subtest "complete element value (custom_arg_element_completer HoC)" => sub {
         args        => {meta=>$meta, custom_arg_element_completer=>$caec},
         comp_line   => 'CMD x -',
         comp_point0 => '       ^',
-        result      => [qw(--help -? -h)],
+        result      => [qw(--arg --help -? -h)],
     );
     # XXX test custom_arg_element_completer declines -> fallback to element_completion
 };
@@ -522,7 +529,7 @@ subtest "complete element value (custom_arg_element_completer Code)" => sub {
         args        => {meta=>$meta, custom_arg_element_completer=>$caec},
         comp_line   => 'CMD -',
         comp_point0 => '     ^',
-        result      => [qw(--help -? -h)],
+        result      => [qw(--arg --help -? -h)],
     );
     test_complete(
         args        => {meta=>$meta, custom_arg_element_completer=>$caec},
@@ -540,7 +547,7 @@ subtest "complete element value (custom_arg_element_completer Code)" => sub {
         args        => {meta=>$meta, custom_arg_element_completer=>$caec},
         comp_line   => 'CMD x -',
         comp_point0 => '       ^',
-        result      => [qw(--help -? -h)],
+        result      => [qw(--arg --help -? -h)],
     );
     # XXX test custom_arg_element_completer declines -> fallback to element_completion
 };
