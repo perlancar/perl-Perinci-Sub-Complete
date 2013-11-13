@@ -373,8 +373,12 @@ sub shell_complete_arg {
         $word = $words->[$cword] = $2;
         $which = 'value';
     }
-    $log->tracef("we should complete arg $which, arg=<%s>, word=<%s>",
+    if ($which eq 'name') {
+        $log->tracef("we should complete arg name, word=<%s>", $word);
+    } elsif ($which eq 'value') {
+        $log->tracef("we should complete arg value, arg=<%s>, word=<%s>",
                  $arg, $word);
+    }
 
     if ($args{custom_completer}) {
         $log->tracef("calling 'custom_completer'");
