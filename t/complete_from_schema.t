@@ -6,7 +6,7 @@ use warnings;
 
 use Test::More 0.98;
 
-# for now, tested via Perinci::Access::Schemeless
+# for now, assumed already tested via shell_complete_arg.t
 
 ok 1;
 done_testing;

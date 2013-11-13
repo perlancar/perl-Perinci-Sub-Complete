@@ -267,6 +267,7 @@ test_complete(
     comp_point0 => '         ^',
     result      => [qw(--help --str3 -? -h)],
 );
+
 test_complete(
     name        => 'custom_completer (decline)',
     args        => {meta=>$meta2,
@@ -283,6 +284,7 @@ test_complete(
     comp_point0 => '         ^',
     result      => [qw(-a -b)],
 );
+
 
 my $meta3 = _normalize_meta({
     v => 1.1,
@@ -336,6 +338,115 @@ test_complete(
     comp_point0 => '       ^',
     result      => [qw(--dry-run)],
 );
+
+subtest "complete element value (using schema)" => sub {
+    my $meta = _normalize_meta({
+        v => 1.1,
+        args => {
+            arg => {
+                schema => ["array*" => of => [str => in => [qw/a aa b c/]]],
+                pos    => 0,
+                greedy => 1,
+            },
+        },
+    });
+    test_complete(
+        args        => {meta=>$meta},
+        comp_line   => 'CMD ',
+        comp_point0 => '    ^',
+        result      => [qw(a aa b c)],
+    );
+    test_complete(
+        args        => {meta=>$meta},
+        comp_line   => 'CMD a',
+        comp_point0 => '     ^',
+        result      => [qw(a aa)],
+    );
+    test_complete(
+        args        => {meta=>$meta},
+        comp_line   => 'CMD -',
+        comp_point0 => '     ^',
+        result      => [qw(--help -? -h)],
+    );
+    test_complete(
+        args        => {meta=>$meta},
+        comp_line   => 'CMD x ',
+        comp_point0 => '      ^',
+        result      => [qw(a aa b c)],
+    );
+    test_complete(
+        args        => {meta=>$meta},
+        comp_line   => 'CMD x a',
+        comp_point0 => '       ^',
+        result      => [qw(a aa)],
+    );
+    test_complete(
+        args        => {meta=>$meta},
+        comp_line   => 'CMD x -',
+        comp_point0 => '       ^',
+        result      => [qw(--help -? -h)],
+    );
+};
+
+subtest "complete element value (using arg spec's element_completion)" => sub {
+    my $meta = _normalize_meta({
+        v => 1.1,
+        args => {
+            arg => {
+                schema => ["array*" => of => [str => in => [qw/a aa b c/]]],
+                element_completion => sub {[qw/d dd e f/]},
+                pos    => 0,
+                greedy => 1,
+            },
+        },
+    });
+    test_complete(
+        args        => {meta=>$meta},
+        comp_line   => 'CMD ',
+        comp_point0 => '    ^',
+        result      => [qw(d dd e f)],
+    );
+    test_complete(
+        args        => {meta=>$meta},
+        comp_line   => 'CMD d',
+        comp_point0 => '     ^',
+        result      => [qw(d dd)],
+    );
+    test_complete(
+        args        => {meta=>$meta},
+        comp_line   => 'CMD -',
+        comp_point0 => '     ^',
+        result      => [qw(--help -? -h)],
+    );
+    test_complete(
+        args        => {meta=>$meta},
+        comp_line   => 'CMD x ',
+        comp_point0 => '      ^',
+        result      => [qw(d dd e f)],
+    );
+    test_complete(
+        args        => {meta=>$meta},
+        comp_line   => 'CMD x d',
+        comp_point0 => '       ^',
+        result      => [qw(d dd)],
+    );
+    test_complete(
+        args        => {meta=>$meta},
+        comp_line   => 'CMD x -',
+        comp_point0 => '       ^',
+        result      => [qw(--help -? -h)],
+    );
+};
+
+subtest "complete element value (using custom_arg_element_completer HoC)" => sub {
+    # TODO
+    ok 1;
+};
+
+subtest "complete element value (using custom_arg_element_completer Code)" => sub {
+    # TODO
+    ok 1;
+};
 
 # XXX test ENV
 # XXX test fallback arg value to file
