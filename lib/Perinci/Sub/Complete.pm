@@ -62,54 +62,47 @@ sub complete_from_schema {
 
     my $words;
     eval {
-        if ($cs->{is}) {
-            $log->tracef("completing from 'is' clause");
-            $words = [$cs->{is}];
-            return; # from eval
+        if ($cs->{is} && !ref($cs->{is})) {
+            $log->tracef("adding completion from 'is' clause");
+            push @$words, $cs->{is};
+            return; # from eval. there should not be any other value
         }
         if ($cs->{in}) {
-            $log->tracef("completing from 'in' clause");
-            $words = $cs->{in};
-            return; # from eval
+            $log->tracef("adding completion from 'in' clause");
+            push @$words, grep {!ref($_)} @{ $cs->{in} };
+            return; # from eval. there should not be any other value
         }
-
+        if ($type =~ /\Abool\*?\z/) {
+            $log->tracef("adding completion from possible values of bool");
+            push @$words, 0, 1;
+        }
         if ($type =~ /\Aint\*?\z/) {
             my $limit = 100;
             if ($cs->{between} &&
                     $cs->{between}[0] - $cs->{between}[0] <= $limit) {
-                $log->tracef("completing from 'between' clause");
-                $words = [$cs->{between}[0] .. $cs->{between}[1]];
-                return; # from eval
+                $log->tracef("adding completion from 'between' clause");
+                push @$words, $cs->{between}[0] .. $cs->{between}[1];
             } elsif ($cs->{xbetween} &&
                          $cs->{xbetween}[0] - $cs->{xbetween}[0] <= $limit) {
-                $log->tracef("completing from 'xbetween' clause");
-                $words = [$cs->{xbetween}[0]+1 .. $cs->{xbetween}[1]-1];
-                return; # from eval
+                $log->tracef("adding completion from 'xbetween' clause");
+                push @$words, $cs->{xbetween}[0]+1 .. $cs->{xbetween}[1]-1;
             } elsif (defined($cs->{min}) && defined($cs->{max}) &&
                          $cs->{max}-$cs->{min} <= $limit) {
-                $log->tracef("completing from 'min' & 'max' clauses");
-                $words = [$cs->{min} .. $cs->{max}];
-                return; # from eval
+                $log->tracef("adding completion from 'min' & 'max' clauses");
+                push @$words, $cs->{min} .. $cs->{max};
             } elsif (defined($cs->{min}) && defined($cs->{xmax}) &&
                          $cs->{xmax}-$cs->{min} <= $limit) {
-                $log->tracef("completing from 'min' & 'xmax' clauses");
-                $words = [$cs->{min} .. $cs->{xmax}-1];
-                return; # from eval
+                $log->tracef("adding completion from 'min' & 'xmax' clauses");
+                push @$words, $cs->{min} .. $cs->{xmax}-1;
             } elsif (defined($cs->{xmin}) && defined($cs->{max}) &&
                          $cs->{max}-$cs->{xmin} <= $limit) {
-                $log->tracef("completing from 'xmin' & 'max' clauses");
-                $words = [$cs->{xmin}+1 .. $cs->{max}];
-                return; # from eval
+                $log->tracef("adding completion from 'xmin' & 'max' clauses");
+                push @$words, $cs->{xmin}+1 .. $cs->{max};
             } elsif (defined($cs->{xmin}) && defined($cs->{xmax}) &&
                          $cs->{xmax}-$cs->{xmin} <= $limit) {
-                $log->tracef("completing from 'xmin' & 'xmax' clauses");
-                $words = [$cs->{min}+1 .. $cs->{max}-1];
-                return; # from eval
+                $log->tracef("adding completion from 'xmin' & 'xmax' clauses");
+                push @$words, $cs->{min}+1 .. $cs->{max}-1;
             }
-        } elsif ($type =~ /\Abool\*?\z/) {
-            $log->tracef("completing from possible [0, 1] values of bool");
-            $words = [0, 1];
-            return; # from eval
         }
     }; # eval
 
