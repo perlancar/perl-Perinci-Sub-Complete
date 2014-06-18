@@ -39,12 +39,22 @@ from a remote server, sometimes the `completion` key no longer contains the code
 (it has been cleansed into a string). Moreover, the completion code needs to run
 on the server.
 
-If supplied this argument and the `riap_uri` argument, the function will try to
-request to the server (via Riap request `complete_arg_val`). Otherwise, the
-function will just give up/decline completing.
+If supplied this argument, `riap_server_url`, and the `riap_uri` arguments, the
+function will try to request to the server (via Riap request
+`complete_arg_val`). Otherwise, the function will just give up/decline
+completing.
 
 _
         },
+    riap_server_url => {
+        summary => 'Optional, to perform complete_arg_val to the server',
+        schema  => 'str*',
+        description => <<'_',
+
+See the `riap_client` argument.
+
+_
+    },
     riap_uri => {
         summary => 'Optional, to perform complete_arg_val to the server',
         schema  => 'str*',
@@ -216,11 +226,12 @@ sub complete_arg_val {
             }
 
             $log->tracef("arg spec's completion is not a coderef");
-            if ($args{riap_client} && $args{riap_uri}) {
+            if ($args{riap_client} && $args{riap_server_url}
+                    && $args{riap_uri}) {
                 $log->tracef("trying to do complete_arg_val from the server");
                 my $res = $args{riap_client}->request(
-                    complete_arg_val => $args{riap_uri},
-                    {arg=>$arg, word=>$word, ci=>$ci},
+                    complete_arg_val => $args{riap_server_url},
+                    {uri=>$args{riap_uri}, arg=>$arg, word=>$word, ci=>$ci},
                 );
                 if ($res->[0] != 200) {
                     $log->tracef("request failed (%s), declining", $res);
@@ -304,11 +315,13 @@ sub complete_arg_elem {
             }
 
             $log->tracef("arg spec's element_completion is not a coderef");
-            if ($args{riap_client} && $args{riap_uri}) {
+            if ($args{riap_client} && $args{riap_server_url} &&
+                    $args{riap_uri}) {
                 $log->tracef("trying to do complete_arg_elem from the server");
                 my $res = $args{riap_client}->request(
-                    complete_arg_elem => $args{riap_uri},
-                    {arg=>$arg, word=>$word, ci=>$ci, index=>$index},
+                    complete_arg_elem => $args{riap_server_url},
+                    {uri=>$args{riap_uri}, arg=>$arg, word=>$word, ci=>$ci,
+                     index=>$index},
                 );
                 if ($res->[0] != 200) {
                     $log->tracef("request failed (%s), declining", $res);
@@ -699,8 +712,9 @@ sub shell_complete_arg {
         $res = complete_arg_val(
             meta=>$meta, arg=>$arg, word=>$word,
             args=>$args, parent_args=>\%args,
-            riap_uri    => $args{riap_uri},
-            riap_client => $args{riap_client},
+            riap_server_url => $args{riap_server_url},
+            riap_uri        => $args{riap_uri},
+            riap_client     => $args{riap_client},
         );
         $log->tracef("complete_arg_val() returns %s", $res);
         return $res if $res;
@@ -741,8 +755,9 @@ sub shell_complete_arg {
         $res = complete_arg_elem(
             meta=>$meta, arg=>$arg, word=>$word, index=>$index,
             args=>$args, parent_args=>\%args,
-            riap_uri    => $args{riap_uri},
-            riap_client => $args{riap_client},
+            riap_server_url => $args{riap_server_url},
+            riap_uri        => $args{riap_uri},
+            riap_client     => $args{riap_client},
         );
         $log->tracef("complete_arg_elem() returns %s", $res);
         return $res if $res;
