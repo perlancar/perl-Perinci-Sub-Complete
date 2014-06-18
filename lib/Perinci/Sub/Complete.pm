@@ -27,6 +27,35 @@ our @EXPORT_OK = qw(
                );
 our %SPEC;
 
+my %common_args_riap = (
+    riap_client => {
+        summary => 'Optional, to perform complete_arg_val to the server',
+        schema  => 'obj*',
+        description => <<'_',
+
+When the argument spec in the Rinci metadata contains `completion` key, this
+means there is custom completion code for that argument. However, if retrieved
+from a remote server, sometimes the `completion` key no longer contains the code
+(it has been cleansed into a string). Moreover, the completion code needs to run
+on the server.
+
+If supplied this argument and the `riap_uri` argument, the function will try to
+request to the server (via Riap request `complete_arg_val`). Otherwise, the
+function will just give up/decline completing.
+
+_
+        },
+    riap_uri => {
+        summary => 'Optional, to perform complete_arg_val to the server',
+        schema  => 'str*',
+        description => <<'_',
+
+See the `riap_client` argument.
+
+_
+    },
+);
+
 $SPEC{complete_from_schema} = {
     v => 1.1,
     summary => 'Complete a value from schema',
@@ -141,6 +170,8 @@ $SPEC{complete_arg_val} = {
             summary => 'To pass parent arguments to completion routines',
             schema  => 'hash',
         },
+
+        %common_args_riap,
     },
     result_naked => 1,
     result => {
@@ -175,20 +206,31 @@ sub complete_arg_val {
         my $comp = $arg_p->{completion};
         if ($comp) {
             $log->tracef("calling arg spec's completion");
-            if (ref($comp) ne 'CODE') {
-                if ($comp eq 'CODE') {
-                    $log->debugf("arg spec's completion is not a coderef".
-                                     ", probably cleaned? declining");
-                } else {
-                    $log->debugf("arg spec's completion is not a coderef".
-                             ", declining");
-                }
+            if (ref($comp) eq 'CODE') {
+                $words = $comp->(
+                    word=>$word, ci=>$ci, args=>$args{args},
+                    parent_args=>\%args);
+                die "Completion sub does not return array"
+                    unless ref($words) eq 'ARRAY';
                 return; # from eval
             }
-            $words = $comp->(
-                word=>$word, ci=>$ci, args=>$args{args}, parent_args=>\%args);
-            die "Completion sub does not return array"
-                unless ref($words) eq 'ARRAY';
+
+            $log->tracef("arg spec's completion is not a coderef");
+            if ($args{riap_client} && $args{riap_uri}) {
+                $log->tracef("trying to do complete_arg_val from the server");
+                my $res = $args{riap_client}->request(
+                    complete_arg_val => $args{riap_uri},
+                    {arg=>$arg, word=>$word, ci=>$ci},
+                );
+                if ($res->[0] != 200) {
+                    $log->tracef("request failed (%s), declining", $res);
+                    return; # from eval
+                }
+                $words = $res->[2];
+                return; # from eval
+            }
+
+            $log->tracef("declining");
             return; # from eval
         }
 
@@ -231,6 +273,10 @@ sub complete_arg_elem {
         $log->tracef("arg is not supplied, declining");
         return undef;
     };
+    defined(my $index = $args{index}) or do {
+        $log->tracef("index is not supplied, declining");
+        return undef;
+    };
     my $ci   = $args{ci} // 0;
     my $word = $args{word} // '';
 
@@ -248,23 +294,31 @@ sub complete_arg_elem {
         my $elcomp = $arg_p->{element_completion};
         if ($elcomp) {
             $log->tracef("calling arg spec's element_completion");
-            if (ref($elcomp) ne 'CODE') {
-                if ($elcomp eq 'CODE') {
-                    $log->debugf(
-                        "arg spec's element_completion is not a coderef".
-                            ", probably cleaned? declining");
-                } else {
-                    $log->debugf(
-                        "arg spec's element_completion is not a coderef".
-                            ", declining");
-                }
+            if (ref($elcomp) eq 'CODE') {
+                $words = $elcomp->(
+                    word=>$word, ci=>$ci, index=>$index,
+                    args=>$args{args}, parent_args=>\%args);
+                die "Completion sub does not return array"
+                    unless ref($words) eq 'ARRAY';
                 return; # from eval
             }
-            $words = $arg_p->{element_completion}->(
-                word=>$word, ci=>$ci, index=>$args{index}, args=>$args{args},
-                parent_args=>\%args);
-            die "Completion sub does not return array"
-                unless ref($words) eq 'ARRAY';
+
+            $log->tracef("arg spec's element_completion is not a coderef");
+            if ($args{riap_client} && $args{riap_uri}) {
+                $log->tracef("trying to do complete_arg_elem from the server");
+                my $res = $args{riap_client}->request(
+                    complete_arg_elem => $args{riap_uri},
+                    {arg=>$arg, word=>$word, ci=>$ci, index=>$index},
+                );
+                if ($res->[0] != 200) {
+                    $log->tracef("request failed (%s), declining", $res);
+                    return; # from eval
+                }
+                $words = $res->[2];
+                return; # from eval
+            }
+
+            $log->tracef("declining");
             return; # from eval
         }
 
@@ -466,6 +520,7 @@ Completion routines will get this from their `parent_args` argument.
 
 _
         },
+        %common_args_riap,
     },
     result_naked => 1,
     result => {
@@ -644,6 +699,8 @@ sub shell_complete_arg {
         $res = complete_arg_val(
             meta=>$meta, arg=>$arg, word=>$word,
             args=>$args, parent_args=>\%args,
+            riap_uri    => $args{riap_uri},
+            riap_client => $args{riap_client},
         );
         $log->tracef("complete_arg_val() returns %s", $res);
         return $res if $res;
@@ -684,6 +741,8 @@ sub shell_complete_arg {
         $res = complete_arg_elem(
             meta=>$meta, arg=>$arg, word=>$word, index=>$index,
             args=>$args, parent_args=>\%args,
+            riap_uri    => $args{riap_uri},
+            riap_client => $args{riap_client},
         );
         $log->tracef("complete_arg_elem() returns %s", $res);
         return $res if $res;
