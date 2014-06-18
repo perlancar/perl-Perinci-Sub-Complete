@@ -1,6 +1,18 @@
 Revision history for Perinci-Sub-Complete
 
+0.38     2014-06-18 (SHARYANTO)
+
+         [ENHANCEMENTS]
+
+         - Add riap_client & riap_uri arguments to
+           shell_complete_args,complete_arg_{val,elem} to allow requesting to
+           server when completion/element_completion coderef has been cleansed
+           into string (currently no tests yet).
+
+
 0.37     2014-06-18 (SHARYANTO)
+
+         [ENHANCEMENTS]
 
          - Don't die if arg spec's completion is not a coderef, decline instead.
 
