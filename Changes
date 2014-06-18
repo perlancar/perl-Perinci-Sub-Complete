@@ -1,5 +1,13 @@
 Revision history for Perinci-Sub-Complete
 
+0.41     2014-06-19 (SHARYANTO)
+
+         [BUG FIXES]
+
+         - Fix completion of array argument's element ('--ary ^' not yet
+           completed as element).
+
+
 0.40     2014-06-19 (SHARYANTO)
 
          - Third attempt, only riap_server_url is needed, riap_uri is optional
