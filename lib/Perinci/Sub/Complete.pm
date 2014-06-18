@@ -757,14 +757,12 @@ sub shell_complete_arg {
 
 =head1 SYNOPSIS
 
- # require'd by Perinci::CmdLine when shell completion is enabled
-
 
 =head1 DESCRIPTION
 
 This module provides functionality for doing shell completion. It is meant to be
-used by L<Perinci::CmdLine>, but nevertheless some routines are reusable outside
-it.
+used by L<Perinci::CmdLine> and other L<Rinci>/L<Riap>-based CLI shell like
+L<App::riap>.
 
 
 =head1 BUGS/LIMITATIONS/TODOS
