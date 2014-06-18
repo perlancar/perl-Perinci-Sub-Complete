@@ -1,5 +1,11 @@
 Revision history for Perinci-Sub-Complete
 
+0.40     2014-06-19 (SHARYANTO)
+
+         - Third attempt, only riap_server_url is needed, riap_uri is optional
+           because the former can contain the latter.
+
+
 0.39     2014-06-18 (SHARYANTO)
 
          - Second attempt, we also need riap_server_url.
