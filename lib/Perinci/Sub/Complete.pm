@@ -115,7 +115,7 @@ $SPEC{complete_arg_val} = {
     summary => 'Given argument name and function metadata, complete value',
     args => {
         meta => {
-            summary => 'Rinci function metadata',
+            summary => 'Rinci function metadata, must be normalized',
             schema => 'hash*',
             req => 1,
         },
@@ -172,9 +172,20 @@ sub complete_arg_val {
     my $words;
     eval { # completion sub can die, etc.
 
-        if ($arg_p->{completion}) {
+        my $comp = $arg_p->{completion};
+        if ($comp) {
             $log->tracef("calling arg spec's completion");
-            $words = $arg_p->{completion}->(
+            if (ref($comp) ne 'CODE') {
+                if ($comp eq 'CODE') {
+                    $log->debugf("arg spec's completion is not a coderef".
+                                     ", probably cleaned? declining");
+                } else {
+                    $log->debugf("arg spec's completion is not a coderef".
+                             ", declining");
+                }
+                return; # from eval
+            }
+            $words = $comp->(
                 word=>$word, ci=>$ci, args=>$args{args}, parent_args=>\%args);
             die "Completion sub does not return array"
                 unless ref($words) eq 'ARRAY';
@@ -234,8 +245,21 @@ sub complete_arg_elem {
     my $words;
     eval { # completion sub can die, etc.
 
-        if ($arg_p->{element_completion}) {
+        my $elcomp = $arg_p->{element_completion};
+        if ($elcomp) {
             $log->tracef("calling arg spec's element_completion");
+            if (ref($elcomp) ne 'CODE') {
+                if ($elcomp eq 'CODE') {
+                    $log->debugf(
+                        "arg spec's element_completion is not a coderef".
+                            ", probably cleaned? declining");
+                } else {
+                    $log->debugf(
+                        "arg spec's element_completion is not a coderef".
+                            ", declining");
+                }
+                return; # from eval
+            }
             $words = $arg_p->{element_completion}->(
                 word=>$word, ci=>$ci, index=>$args{index}, args=>$args{args},
                 parent_args=>\%args);
@@ -323,7 +347,7 @@ information in Rinci metadata (using `complete_arg_val()` function).
 _
     args => {
         meta => {
-            summary => 'Rinci function metadata',
+            summary => 'Rinci function metadata, must be normalized',
             schema => 'hash*',
             req => 1,
         },
