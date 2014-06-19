@@ -15,9 +15,9 @@ use Test::More 0.98;
 
 subtest int => sub {
     subtest "min/max below limit" => sub {
-        my $sch = [int => {min=>2, max=>14}, {}];
+        my $sch = [int => {min=>-2, max=>7}, {}];
         is_deeply(complete_from_schema(schema=>$sch, word=>''),
-                  [sort qw/2 3 4 5 6 7 8 9 10 11 12 13 14/]);
+                  [sort qw/-2 -1 0 1 2 3 4 5 6 7/]);
     };
 
     subtest "min/xmax below limit" => sub {
@@ -53,33 +53,35 @@ subtest int => sub {
     subtest "digit by digit completion" => sub {
         my $sch = [int => {}, {}];
         is_deeply(complete_from_schema(schema=>$sch, word=>''),
-                  [qw/0 1 2 3 4 5 6 7 8 9/]);
+                  [sort qw/0 -1 -2 -3 -4 -5 -6 -7 -8 -9
+                           1 2 3 4 5 6 7 8 9/]);
         is_deeply(complete_from_schema(schema=>$sch, word=>'0'),
-                  [qw/0/]);
+                  [sort qw/0/]);
         is_deeply(complete_from_schema(schema=>$sch, word=>'1'),
-                  [qw/1 10 11 12 13 14 15 16 17 18 19/]);
+                  [sort qw/1 10 11 12 13 14 15 16 17 18 19/]);
         is_deeply(complete_from_schema(schema=>$sch, word=>'13'),
-                  [qw/13 130 131 132 133 134 135 136 137 138 139/]);
+                  [sort qw/13 130 131 132 133 134 135 136 137 138 139/]);
         is_deeply(complete_from_schema(schema=>$sch, word=>'-1'),
-                  [qw/-1 -10 -11 -12 -13 -14 -15 -16 -17 -18 -19/]);
+                  [sort qw/-1 -10 -11 -12 -13 -14 -15 -16 -17 -18 -19/]);
         is_deeply(complete_from_schema(schema=>$sch, word=>'-13'),
-                  [qw/-13 -130 -131 -132 -133 -134 -135 -136 -137 -138 -139/]);
+                  [sort qw/-13 -130 -131 -132 -133 -134 -135 -136 -137 -138
+                           -139/]);
         is_deeply(complete_from_schema(schema=>$sch, word=>'a'),
-                  [qw//]);
+                  [sort qw//]);
     };
 
     subtest "digit by digit completion, with min/max" => sub {
         my $sch = [int => {min=>1, max=>2000}, {}];
         is_deeply(complete_from_schema(schema=>$sch, word=>''),
-                  [qw/1 2 3 4 5 6 7 8 9/]);
+                  [sort qw/1 2 3 4 5 6 7 8 9/]);
         is_deeply(complete_from_schema(schema=>$sch, word=>'1'),
-                  [qw/1 10 11 12 13 14 15 16 17 18 19/]);
+                  [sort qw/1 10 11 12 13 14 15 16 17 18 19/]);
         is_deeply(complete_from_schema(schema=>$sch, word=>'13'),
-                  [qw/13 130 131 132 133 134 135 136 137 138 139/]);
+                  [sort qw/13 130 131 132 133 134 135 136 137 138 139/]);
         is_deeply(complete_from_schema(schema=>$sch, word=>'-1'),
-                  [qw//]);
+                  [sort qw//]);
         is_deeply(complete_from_schema(schema=>$sch, word=>'201'),
-                  [qw/201/]);
+                  [sort qw/201/]);
     };
 
     # XXX digit-by-digit, with xmin, xmax, between, xbetween
@@ -93,7 +95,7 @@ subtest float => sub {
         is_deeply(complete_from_schema(schema=>$sch, word=>'0'),
                   [sort qw/0 0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9/]);
         is_deeply(complete_from_schema(schema=>$sch, word=>'-0'),
-                  [sort qw/-0 -0.0 -0.1 -0.2 -0.3 -0.4 -0.5 -0.6 -0.7 -0.8
+                  [sort qw/-0.0 -0.1 -0.2 -0.3 -0.4 -0.5 -0.6 -0.7 -0.8
                            -0.9/]);
         is_deeply(complete_from_schema(schema=>$sch, word=>'10'),
                   [sort qw/10 100 101 102 103 104 105 106 107 108 109
