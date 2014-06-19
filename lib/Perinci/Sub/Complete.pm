@@ -113,6 +113,7 @@ sub complete_from_schema {
         if ($type =~ /\Abool\*?\z/) {
             $log->tracef("adding completion from possible values of bool");
             push @$words, 0, 1;
+            return; # from eval
         }
         if ($type =~ /\Aint\*?\z/) {
             my $limit = 100;
@@ -139,8 +140,29 @@ sub complete_from_schema {
             } elsif (defined($cs->{xmin}) && defined($cs->{xmax}) &&
                          $cs->{xmax}-$cs->{xmin} <= $limit) {
                 $log->tracef("adding completion from 'xmin' & 'xmax' clauses");
-                push @$words, $cs->{min}+1 .. $cs->{max}-1;
+                push @$words, $cs->{xmin}+1 .. $cs->{xmax}-1;
+            } elsif (length($word) && $word !~ /\A-?\d+\z/) {
+                $log->tracef("word not an int");
+                $words = [];
+            } else {
+                # do a digit by digit completion
+                $words = [];
+                for ("", 0..9) {
+                    my $i = $word . $_;
+                    next unless length $i;
+                    next if $i =~ /\A-?0\d/;
+                    next if $cs->{between} &&
+                        ($i <  $cs->{between}[0]  || $i >  $cs->{between}[1]);
+                    next if $cs->{xbetween} &&
+                        ($i <= $cs->{xbetween}[0] || $i >= $cs->{xbetween}[1]);
+                    next if $cs->{min}  && $i <  $cs->{min};
+                    next if $cs->{xmin} && $i <= $cs->{xmin};
+                    next if $cs->{max}  && $i >  $cs->{max};
+                    next if $cs->{xmin} && $i >= $cs->{xmax};
+                    push @$words, $i;
+                }
             }
+            return; # from eval
         }
     }; # eval
 
