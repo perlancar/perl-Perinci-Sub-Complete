@@ -1,5 +1,13 @@
 Revision history for Perinci-Sub-Complete
 
+0.43     2014-06-19 (SHARYANTO)
+
+         [ENHANCEMENTS]
+
+         - [silly] complete_from_schema(): Do a digit-by-digit completion for
+           float.
+
+
 0.42     2014-06-19 (SHARYANTO)
 
          [ENHANCEMENTS]
