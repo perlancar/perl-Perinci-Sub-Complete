@@ -227,47 +227,77 @@ test_complete(
     result      => [qw(a b c d)],
 );
 test_complete(
-    name        => 'complete arg value, arg_pos (1b)',
+    name        => 'complete arg value, pos (1b)',
     args        => {meta=>$meta2},
     comp_line   => 'CMD a',
     comp_point0 => '     ^',
     result      => [qw(a)],
 );
 test_complete(
-    name        => 'complete arg value, arg_pos (2)',
+    name        => 'complete arg value, pos (2)',
     args        => {meta=>$meta2},
     comp_line   => 'CMD a ',
     comp_point0 => '      ^',
     result      => [qw(e f g h)],
 );
 test_complete(
-    name        => 'complete arg value, arg_pos (2b)',
+    name        => 'complete arg value, pos (2b)',
     args        => {meta=>$meta2},
     comp_line   => 'CMD a f',
     comp_point0 => '       ^',
     result      => [qw(f)],
 );
 test_complete(
-    name        => 'complete arg value, arg_pos (3)',
+    name        => 'complete arg value, pos (3)',
     args        => {meta=>$meta2},
     comp_line   => 'CMD a e ',
     comp_point0 => '        ^',
     result      => [qw(i j k l)],
 );
 test_complete(
-    name        => 'complete arg value, arg_pos (3b)',
+    name        => 'complete arg value, pos (3b)',
     args        => {meta=>$meta2},
     comp_line   => 'CMD a e j',
     comp_point0 => '         ^',
     result      => [qw(j)],
 );
 test_complete(
-    name        => 'complete arg value, arg_pos mixed with --opt',
+    name        => 'complete arg value (pos) becomes complete arg name because word starts with -',
     args        => {meta=>$meta2},
     comp_line   => 'CMD a e -',
     comp_point0 => '         ^',
     result      => [qw(--help --str3 -? -h)],
 );
+{
+    my $meta = {
+        v => 1.1,
+        args => {
+            str => { schema => ['str', {in=>[qw/a -a -b/]}], pos=>0 },
+        },
+    };
+    test_complete(
+        name        => 'complete arg value does not become complete arg name despite word starts with -, because opt expects value',
+        args        => {meta=>$meta},
+        comp_line   => 'CMD --str -',
+        comp_point0 => '           ^',
+        result      => [qw(-a -b)],
+    );
+}
+{
+    my $meta = {
+        v => 1.1,
+        args => {
+            bool => { schema => ['bool', {}], pos=>0 },
+        },
+    };
+    test_complete(
+        name        => 'complete arg value becomes complete arg name because word starts with - (opt does not expect value)',
+        args        => {meta=>$meta},
+        comp_line   => 'CMD --bool -',
+        comp_point0 => '            ^',
+        result      => [qw(--bool --help --nobool -? -h)],
+    );
+}
 
 test_complete(
     name        => 'custom_completer (decline)',

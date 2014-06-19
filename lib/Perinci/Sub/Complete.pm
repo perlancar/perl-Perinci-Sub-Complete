@@ -141,7 +141,7 @@ sub complete_from_schema {
                          $cs->{xmax}-$cs->{xmin} <= $limit) {
                 $log->tracef("adding completion from 'xmin' & 'xmax' clauses");
                 push @$words, $cs->{xmin}+1 .. $cs->{xmax}-1;
-            } elsif (length($word) && $word !~ /\A-?\d+\z/) {
+            } elsif (length($word) && $word !~ /\A-?\d*\z/) {
                 $log->tracef("word not an int");
                 $words = [];
             } else {
@@ -150,6 +150,7 @@ sub complete_from_schema {
                 for ("", 0..9) {
                     my $i = $word . $_;
                     next unless length $i;
+                    next if $i eq '-';
                     next if $i =~ /\A-?0\d/;
                     next if $cs->{between} &&
                         ($i <  $cs->{between}[0]  || $i >  $cs->{between}[1]);
@@ -672,7 +673,35 @@ sub shell_complete_arg {
     pop @$remaining_words
         while (@$remaining_words && !defined($remaining_words->[-1]));
 
-    if ($which ne 'name' && $word =~ /^-/) {
+    my $opt_before_val;
+    my $opt_before_val_expects_val;
+    if (($which eq 'value' || $which eq 'element value') && $cword > 0) {
+        {
+            last unless $words->[$cword-1] =~ /\A--?([\w-]+)\z/;
+            my $opt = $1; $opt =~ s/-/_/g;
+            # find the corresponding function arg
+            my $an;
+            my $arg_p;
+            for (keys %$args_p) {
+                $arg_p = $args_p->{$_};
+                if ($opt eq $_) {
+                    $an = $_;
+                    last;
+                }
+                if ($arg_p->{cmdline_aliases}{$opt}) {
+                    $an = $_;
+                    last;
+                }
+            }
+            last unless $an;
+            $opt_before_val = $an;
+            last unless $arg_p->{schema};
+            $opt_before_val_expects_val = $arg_p->{schema}[0] ne 'bool';
+        } # block
+    }
+
+    #$log->errorf("remaining_words=%s, args=%s, opt_before_val=%s, opt_before_val_expects_val=%s", $remaining_words, $args, $opt_before_val, $opt_before_val_expects_val);
+    if ($which ne 'name' && $word =~ /^-/ && !$opt_before_val_expects_val) {
         # user indicates he wants to complete arg name
         $which = 'name';
         delete $args->{$arg} if !defined($args->{$arg});
@@ -873,6 +902,10 @@ L<App::riap>.
 
 
 =head1 BUGS/LIMITATIONS/TODOS
+
+=head2 Completing C<--foo=X> not yet supported
+
+=head2 Unclosed quoted
 
 Due to parsing limitation (invokes subshell), can't complete unclosed quotes,
 e.g.
