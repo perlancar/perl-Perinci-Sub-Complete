@@ -1,5 +1,18 @@
 Revision history for Perinci-Sub-Complete
 
+0.42     2014-06-19 (SHARYANTO)
+
+         [ENHANCEMENTS]
+
+         - [tweak] Don't switch to complete arg name when word starts with '-'
+           but opt before word expects value. For example, '--bool -^' will
+           switch to completing arg name, but '--str -^' will still try to
+           complete str's value because it expects value.
+
+         - [silly] complete_from_schema(): Do a digit-by-digit completion for
+           int.
+
+
 0.41     2014-06-19 (SHARYANTO)
 
          [BUG FIXES]
