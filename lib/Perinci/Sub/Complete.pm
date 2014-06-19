@@ -353,7 +353,8 @@ sub complete_arg_elem {
             return; # from eval
         }
 
-        # normalize subschema since periwrap does not currently do it
+        # normalize subschema because Data::Sah's normalize_schema (as of 0.28)
+        # currently does not do it yet
         my $elsch = Data::Sah::normalize_schema($cs->{of});
 
         $log->tracef("completing using element schema");
