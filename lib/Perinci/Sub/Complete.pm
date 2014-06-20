@@ -285,7 +285,7 @@ sub complete_arg_val {
 
             $log->tracef("arg spec's completion is not a coderef");
             if ($args{riap_client} && $args{riap_server_url}) {
-                $log->tracef("trying to do complete_arg_val from the server");
+                $log->tracef("trying to request complete_arg_val to server");
                 my $res = $args{riap_client}->request(
                     complete_arg_val => $args{riap_server_url},
                     {(uri=>$args{riap_uri}) x !!defined($args{riap_uri}),
@@ -374,7 +374,7 @@ sub complete_arg_elem {
 
             $log->tracef("arg spec's element_completion is not a coderef");
             if ($args{riap_client} && $args{riap_server_url}) {
-                $log->tracef("trying to do complete_arg_elem from the server");
+                $log->tracef("trying to request complete_arg_elem to server");
                 my $res = $args{riap_client}->request(
                     complete_arg_elem => $args{riap_server_url},
                     {(uri=>$args{riap_uri}) x !!defined($args{riap_uri}),
