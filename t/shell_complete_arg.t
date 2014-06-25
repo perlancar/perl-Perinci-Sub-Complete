@@ -5,6 +5,7 @@ use strict;
 use warnings;
 #use Log::Any '$log';
 
+use Complete::Util qw(complete_array);
 use File::Which qw(which);
 use Perinci::Sub::Complete qw(shell_complete_arg);
 use Perinci::Sub::Normalize qw(normalize_function_metadata);
@@ -483,14 +484,20 @@ subtest "complete element value (custom_arg_element_completer HoC)" => sub {
         args => {
             arg => {
                 schema => ["array*" => of => [str => in => [qw/a aa b c/]]],
-                element_completion => sub {[qw/d dd e f/]},
+                element_completion => sub {
+                    my %args = @_;
+                    complete_array(array=>[qw/d dd e f/], word=>$args{word});
+                },
                 pos    => 0,
                 greedy => 1,
             },
         },
     });
     my $caec = {
-        arg => sub {[qw/g gg h i/]},
+        arg => sub {
+            my %args = @_;
+            complete_array(array=>[qw/g gg h i/], word=>$args{word});
+        },
     };
     test_complete(
         args        => {meta=>$meta, custom_arg_element_completer=>$caec},
@@ -537,13 +544,19 @@ subtest "complete element value (custom_arg_element_completer Code)" => sub {
         args => {
             arg => {
                 schema => ["array*" => of => [str => in => [qw/a aa b c/]]],
-                element_completion => sub {[qw/d dd e f/]},
+                element_completion => sub {
+                    my %args = @_;
+                    complete_array(array=>[qw/d dd e f/], word=>$args{word});
+                },
                 pos    => 0,
                 greedy => 1,
             },
         },
     });
-    my $caec = sub {[qw/g gg h i/]};
+    my $caec = sub {
+        my %args = @_;
+        complete_array(array=>[qw/g gg h i/], word=>$args{word});
+    };
     test_complete(
         args        => {meta=>$meta, custom_arg_element_completer=>$caec},
         comp_line   => 'CMD ',
