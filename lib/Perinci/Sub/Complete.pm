@@ -320,15 +320,7 @@ sub complete_arg_val {
         return undef;
     }
 
-    complete_array(array=>$words, word=>$word, ci=>$ci);
-
-    # when bash supports autocorrect (or "programmable dirspell" perhaps), we
-    # can return $words directly. suppose arg val is [audry, audrey, adrian,
-    # andy]. if word is 'au' then completion is simply [audry, audrey]. but if
-    # user mistypes and word is 'adu', we can still suggest [audry, audrey] and
-    # future bash can replace buffer with 'aud'. currently it replaces buffer
-    # with 'a' and won't display any completion.
-
+    $words;
 }
 
 my $m = clone($SPEC{complete_arg_val});
@@ -433,7 +425,8 @@ sub complete_arg_elem {
         $log->tracef("no completion from metadata possible, declining");
         return undef;
     }
-    complete_array(array=>$words, word=>$word, ci=>$ci);
+
+    $words;
 }
 
 $SPEC{shell_complete_arg} = {
