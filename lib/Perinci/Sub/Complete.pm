@@ -8,7 +8,7 @@ use Log::Any '$log';
 
 use Data::Clone;
 #use List::MoreUtils qw(firstidx);
-use SHARYANTO::Complete::Util qw(
+use Complete::Util qw(
                                     complete_array
                                     complete_env
                                     complete_file
