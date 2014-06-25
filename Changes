@@ -1,5 +1,11 @@
 Revision history for Perinci-Sub-Complete
 
+0.46     2014-06-25 (SHARYANTO)
+
+         - [Bug fix] Forgot to remove complete_array() in
+           complete_arg_{val,elem}().
+
+
 0.45     2014-06-25 (SHARYANTO)
 
          [INCOMPATIBLE CHANGES]
