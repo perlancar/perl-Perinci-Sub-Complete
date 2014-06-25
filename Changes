@@ -1,5 +1,14 @@
 Revision history for Perinci-Sub-Complete
 
+0.45     2014-06-25 (SHARYANTO)
+
+         [INCOMPATIBLE CHANGES]
+
+         - No longer filter completion routine with complete_array(), it's now
+           up to the routine to filter it, this allows case-insensitive matching
+           or spelling correction.
+
+
 0.44     2014-06-25 (SHARYANTO)
 
          - No functional changes.
