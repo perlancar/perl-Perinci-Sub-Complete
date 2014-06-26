@@ -876,7 +876,7 @@ sub shell_complete_arg {
                 $a =~ s/[_.]/-/g;
                 my @w;
                 my $type = $as->{schema}[0];
-                if ($type eq 'bool' && length($a) > 1 &&
+                if (defined($type) && $type eq 'bool' && length($a) > 1 &&
                         !$as->{schema}[1]{is}) {
                     @w = ("--$a", "--no$a");
                 } else {
