@@ -1,5 +1,12 @@
 Revision history for Perinci-Sub-Complete
 
+0.47     2014-06-26 (SHARYANTO)
+
+         - No functional changes.
+
+         - [Bug fix] Remove perl undef warning when arg doesn't have schema.
+
+
 0.46     2014-06-25 (SHARYANTO)
 
          - [Bug fix] Forgot to remove complete_array() in
