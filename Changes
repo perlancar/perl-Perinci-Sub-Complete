@@ -1,5 +1,17 @@
 Revision history for Perinci-Sub-Complete
 
+0.48     2014-06-27 (SHARYANTO)
+
+         [INCOMPATIBLE CHANGES]
+
+         - shell_complete_args() now returns hashref instead of plain arrayref,
+           to return extra metadata to give hints to formatter (like
+           Complete::Util's format_shell_completion()) on how to properly
+           display/escape special characters to the shell. For example, if we're
+           completing environment variables (type=>'env') we don't need to
+           escape the dollar sign.
+
+
 0.47     2014-06-26 (SHARYANTO)
 
          - No functional changes.
