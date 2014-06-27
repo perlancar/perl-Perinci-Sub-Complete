@@ -6,7 +6,6 @@ use warnings;
 use experimental 'smartmatch';
 use Log::Any '$log';
 
-use Data::Clone;
 #use List::MoreUtils qw(firstidx);
 use Complete::Util qw(
                                     complete_array
@@ -14,7 +13,9 @@ use Complete::Util qw(
                                     complete_file
                                     parse_shell_cmdline
                             );
+use Perinci::Sub::Util qw(gen_modified_sub);
 
+# DATE
 # VERSION
 
 require Exporter;
@@ -323,13 +324,19 @@ sub complete_arg_val {
     $words;
 }
 
-my $m = clone($SPEC{complete_arg_val});
-$m->{summary} = 'Given argument name and function metadata, complete array element';
-$m->{args}{index} = {
-    summary => 'Index of element to complete',
-    schema  => [int => min => 0],
-};
-$SPEC{complete_arg_elem} = $m;
+gen_modified_sub(
+    output_name  => 'complete_arg_elem',
+    install_sub  => 0,
+    base_name    => 'complete_arg_val',
+    summary      => 'Given argument name and function metadata, '.
+        'complete array element',
+    add_args     => {
+        index => {
+            summary => 'Index of element to complete',
+            schema  => [int => min => 0],
+        },
+    },
+);
 sub complete_arg_elem {
     require Data::Sah;
 
