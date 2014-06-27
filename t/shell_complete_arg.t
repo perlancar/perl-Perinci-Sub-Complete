@@ -43,137 +43,156 @@ test_complete(
     args        => {meta=>$meta},
     comp_line   => 'CMD ',
     comp_point0 => '    ^',
-    result      => [qw(--bool1 --bool2 --help --nobool1 --nobool2
-                       --str1 --str2 -? -h)],
+    result      => {completion=>[qw(--bool1 --bool2 --help --nobool1 --nobool2
+                                    --str1 --str2 -? -h)],
+                    type=>'option'},
 );
 test_complete(
     name        => 'complete arg name 2',
     args        => {meta=>$meta},
     comp_line   => 'CMD -',
     comp_point0 => '     ^',
-    result      => [qw(--bool1 --bool2 --help --nobool1 --nobool2
-                       --str1 --str2 -? -h)],
+    result      => {completion=>[qw(--bool1 --bool2 --help --nobool1 --nobool2
+                                    --str1 --str2 -? -h)],
+                    type=>'option'},
 );
 test_complete(
     name        => 'complete arg name 3',
     args        => {meta=>$meta},
     comp_line   => 'CMD --',
     comp_point0 => '      ^',
-    result      => [qw(--bool1 --bool2 --help --nobool1 --nobool2
-                       --str1 --str2)],
+    result      => {completion=>[qw(--bool1 --bool2 --help --nobool1 --nobool2
+                                    --str1 --str2)],
+                    type=>'option'},
 );
 test_complete(
     name        => 'complete arg name 4',
     args        => {meta=>$meta},
     comp_line   => 'CMD --b',
     comp_point0 => '      ^',
-    result      => [qw(--bool1 --bool2 --help --nobool1 --nobool2
-                       --str1 --str2)],
+    result      => {completion=>[qw(--bool1 --bool2 --help --nobool1 --nobool2
+                                    --str1 --str2)],
+                    type=>'option'},
 );
 test_complete(
     name        => 'complete arg name 5',
     args        => {meta=>$meta},
     comp_line   => 'CMD --b',
     comp_point0 => '       ^',
-    result      => [qw(--bool1 --bool2)],
+    result      => {completion=>[qw(--bool1 --bool2)],
+                    type=>'option'},
 );
 test_complete(
     name        => 'complete arg name 6',
     args        => {meta=>$meta},
     comp_line   => 'CMD --x',
     comp_point0 => '       ^',
-    result      => [qw()],
+    result      => {completion=>[qw()],
+                    type=>'option'},
 );
 test_complete(
     name        => 'complete arg name 7',
     args        => {meta=>$meta},
     comp_line   => 'CMD --bool1',
     comp_point0 => '           ^',
-    result      => [qw(--bool1)],
+    result      => {completion=>[qw(--bool1)],
+                    type=>'option'},
 );
 test_complete(
     name        => 'no longer complete mentioned arg',
     args        => {meta=>$meta},
     comp_line   => 'CMD --bool1 ',
     comp_point0 => '            ^',
-    result      => [qw(--bool2 --help --nobool2 --str1 --str2 -? -h)],
+    result      => {completion=>[qw(--bool2 --help --nobool2 --str1 --str2 -? -h)],
+                    type=>'option'},
 );
 test_complete(
     name        => 'no longer complete mentioned arg (2)',
     args        => {meta=>$meta},
     comp_line   => 'CMD --nobool1 ',
     comp_point0 => '              ^',
-    result      => [qw(--bool2 --help --nobool2 --str1 --str2 -? -h)],
+    result      => {completion=>[qw(--bool2 --help --nobool2 --str1 --str2 -? -h)],
+                    type=>'option'},
 );
 test_complete(
     name        => 'no longer complete mentioned arg (3)',
     args        => {meta=>$meta},
     comp_line   => 'CMD --str1 1 --nobool1 ',
     comp_point0 => '                       ^',
-    result      => [qw(--bool2 --help --nobool2 --str2 -? -h)],
+    result      => {completion=>[qw(--bool2 --help --nobool2 --str2 -? -h)],
+                    type=>'option'},
 );
 test_complete(
     name        => 'no longer complete mentioned common opts',
     args        => {meta=>$meta},
     comp_line   => 'CMD --bool1 --nobool2 --help ',
     comp_point0 => '                             ^',
-    result      => [qw(--str1 --str2)],
+    result      => {completion=>[qw(--str1 --str2)],
+                    type=>'option'},
 );
 test_complete(
     name        => 'no longer complete mentioned common opts (2)',
     args        => {meta=>$meta},
     comp_line   => 'CMD --bool1 --nobool2 -h ',
     comp_point0 => '                         ^',
-    result      => [qw(--str1 --str2)],
+    result      => {completion=>[qw(--str1 --str2)],
+                    type=>'option'},
 );
 test_complete(
     name        => 'complete arg value',
     args        => {meta=>$meta},
     comp_line   => 'CMD --bool1 --str2 ',
     comp_point0 => '                   ^',
-    result      => [qw(bar baz foo str)],
+    result      => {completion=>[qw(bar baz foo str)],
+                },
 );
 test_complete(
     name        => 'complete arg value (2)',
     args        => {meta=>$meta},
     comp_line   => 'CMD --bool1 --str2=f',
     comp_point0 => '                    ^',
-    result      => [qw(foo)],
+    result      => {completion=>[qw(foo)],
+                },
 );
 test_complete(
     name        => 'complete arg name instead of value when user type -',
     args        => {meta=>$meta},
     comp_line   => 'CMD --bool1 -',
     comp_point0 => '             ^',
-    result      => [qw(--bool2 --help --nobool2 --str1 --str2 -? -h)],
+    result      => {completion=>[qw(--bool2 --help --nobool2 --str1 --str2 -? -h)],
+                    type=>'option'},
 );
 test_complete(
     name        => 'complete arg value (spec "in")',
     args        => {meta=>$meta},
     comp_line   => 'CMD --bool1 --str2 ba',
     comp_point0 => '                     ^',
-    result      => [qw(bar baz)],
+    result      => {completion=>[qw(bar baz)],
+                },
 );
 test_complete(
     name        => 'complete arg value (spec "completion")',
     args        => {meta=>$meta},
     comp_line   => 'CMD --str1 ',
     comp_point0 => '           ^',
-    result      => [qw(apple apricot cherry cranberry)],
+    result      => {completion=>[qw(apple apricot cherry cranberry)],
+                },
 );
 test_complete(
     name        => 'complete arg value (spec "completion") (2)',
     args        => {meta=>$meta},
     comp_line   => 'CMD --str1 app',
     comp_point0 => '             ^',
-    result      => [qw(apple apricot)],
+    result      => {completion=>[qw(apple apricot)],
+                },
 );
 test_complete(
     name        => 'complete arg value (spec "completion") (3)',
     args        => {meta=>$meta},
     comp_line   => 'CMD --str1 apx',
     comp_point0 => '              ^',
-    result      => [qw()],
+    result      => {completion=>[qw()],
+                },
 );
 test_complete(
     name        => 'complete arg value (arg "custom_arg_completer" HoCode)',
@@ -185,7 +204,8 @@ test_complete(
                         }}},
     comp_line   => 'CMD --str1 ',
     comp_point0 => '           ^',
-    result      => [qw(a b c)],
+    result      => {completion=>[qw(a b c)],
+                },
 );
 test_complete(
     name        => 'complete arg value (arg "custom_arg_completer" HoCode,'.
@@ -198,7 +218,8 @@ test_complete(
                     }}},
     comp_line   => 'CMD --str1 ',
     comp_point0 => '           ^',
-    result      => [qw(apple apricot cherry cranberry)],
+    result      => {completion=>[qw(apple apricot cherry cranberry)],
+                },
 );
 test_complete(
     name        => 'complete arg value (opts "custom_arg_completer" code)',
@@ -209,7 +230,8 @@ test_complete(
                     }},
     comp_line   => 'CMD --str1 ',
     comp_point0 => '           ^',
-    result      => [qw(a b c)],
+    result      => {completion=>[qw(a b c)],
+                },
 );
 
 my $meta2 = normalize_function_metadata({
@@ -239,49 +261,56 @@ test_complete(
     args        => {meta=>$meta2},
     comp_line   => 'CMD ',
     comp_point0 => '    ^',
-    result      => [qw(a b c d)],
+    result      => {completion=>[qw(a b c d)],
+                },
 );
 test_complete(
     name        => 'complete arg value, pos (1b)',
     args        => {meta=>$meta2},
     comp_line   => 'CMD a',
     comp_point0 => '     ^',
-    result      => [qw(a)],
+    result      => {completion=>[qw(a)],
+                },
 );
 test_complete(
     name        => 'complete arg value, pos (2)',
     args        => {meta=>$meta2},
     comp_line   => 'CMD a ',
     comp_point0 => '      ^',
-    result      => [qw(e f g h)],
+    result      => {completion=>[qw(e f g h)],
+                },
 );
 test_complete(
     name        => 'complete arg value, pos (2b)',
     args        => {meta=>$meta2},
     comp_line   => 'CMD a f',
     comp_point0 => '       ^',
-    result      => [qw(f)],
+    result      => {completion=>[qw(f)],
+                },
 );
 test_complete(
     name        => 'complete arg value, pos (3)',
     args        => {meta=>$meta2},
     comp_line   => 'CMD a e ',
     comp_point0 => '        ^',
-    result      => [qw(i j k l)],
+    result      => {completion=>[qw(i j k l)],
+                },
 );
 test_complete(
     name        => 'complete arg value, pos (3b)',
     args        => {meta=>$meta2},
     comp_line   => 'CMD a e j',
     comp_point0 => '         ^',
-    result      => [qw(j)],
+    result      => {completion=>[qw(j)],
+                },
 );
 test_complete(
     name        => 'complete arg value (pos) becomes complete arg name because word starts with -',
     args        => {meta=>$meta2},
     comp_line   => 'CMD a e -',
     comp_point0 => '         ^',
-    result      => [qw(--help --str3 -? -h)],
+    result      => {completion=>[qw(--help --str3 -? -h)],
+                    type=>'option'},
 );
 {
     my $meta = {
@@ -295,7 +324,8 @@ test_complete(
         args        => {meta=>$meta},
         comp_line   => 'CMD --str -',
         comp_point0 => '           ^',
-        result      => [qw(-a -b)],
+        result      => {completion=>[qw(-a -b)],
+                    },
     );
 }
 {
@@ -310,7 +340,8 @@ test_complete(
         args        => {meta=>$meta},
         comp_line   => 'CMD --bool -',
         comp_point0 => '            ^',
-        result      => [qw(--bool --help --nobool -? -h)],
+        result      => {completion=>[qw(--bool --help --nobool -? -h)],
+                    type=>'option'},
     );
 }
 
@@ -320,7 +351,8 @@ test_complete(
                     custom_completer=>sub {return undef}},
     comp_line   => 'CMD a e -',
     comp_point0 => '         ^',
-    result      => [qw(--help --str3 -? -h)],
+    result      => {completion=>[qw(--help --str3 -? -h)],
+                    type=>'option'},
 );
 test_complete(
     name        => 'custom_completer',
@@ -328,7 +360,8 @@ test_complete(
                     custom_completer=>sub {return ["-a", "-b"]}},
     comp_line   => 'CMD a e -',
     comp_point0 => '         ^',
-    result      => [qw(-a -b)],
+    result      => {completion=>[qw(-a -b)],
+                },
 );
 
 
@@ -351,8 +384,9 @@ test_complete(
     args        => {meta=>$meta3},
     comp_line   => 'CMD ',
     comp_point0 => '    ^',
-    result      => [qw(--S2 --alias1 --b2 --b3 --help --noalias1 --nob2 --s2
-                       -? -S -X -b -h -s)],
+    result      => {completion=>[qw(--S2 --alias1 --b2 --b3 --help --noalias1 --nob2 --s2
+                                    -? -S -X -b -h -s)],
+                    type=>'option'},
 );
 
 my $meta4 = normalize_function_metadata({
@@ -368,7 +402,8 @@ test_complete(
     args        => {meta=>$meta4},
     comp_line   => 'CMD --f',
     comp_point0 => '       ^',
-    result      => [qw(--foo-bar --foo-baz)],
+    result      => {completion=>[qw(--foo-bar --foo-baz)],
+                    type=>'option'},
 );
 
 my $meta5 = normalize_function_metadata({
@@ -382,7 +417,8 @@ test_complete(
     args        => {meta=>$meta5},
     comp_line   => 'CMD --d',
     comp_point0 => '       ^',
-    result      => [qw(--dry-run)],
+    result      => {completion=>[qw(--dry-run)],
+                    type=>'option'},
 );
 
 subtest "complete element value (schema)" => sub {
@@ -400,44 +436,51 @@ subtest "complete element value (schema)" => sub {
         args        => {meta=>$meta},
         comp_line   => 'CMD ',
         comp_point0 => '    ^',
-        result      => [qw(a aa b c)],
+        result      => {completion=>[qw(a aa b c)],
+                    },
     );
     test_complete(
         args        => {meta=>$meta},
         comp_line   => 'CMD a',
         comp_point0 => '     ^',
-        result      => [qw(a aa)],
+        result      => {completion=>[qw(a aa)],
+                    },
     );
     test_complete(
         args        => {meta=>$meta},
         comp_line   => 'CMD -',
         comp_point0 => '     ^',
-        result      => [qw(--arg --help -? -h)],
+        result      => {completion=>[qw(--arg --help -? -h)],
+                        type=>'option'},
     );
     test_complete(
         args        => {meta=>$meta},
         comp_line   => 'CMD x ',
         comp_point0 => '      ^',
-        result      => [qw(a aa b c)],
+        result      => {completion=>[qw(a aa b c)],
+                    },
     );
     test_complete(
         args        => {meta=>$meta},
         comp_line   => 'CMD x a',
         comp_point0 => '       ^',
-        result      => [qw(a aa)],
+        result      => {completion=>[qw(a aa)],
+                    },
     );
     test_complete(
         args        => {meta=>$meta},
         comp_line   => 'CMD x -',
         comp_point0 => '       ^',
-        result      => [qw(--arg --help -? -h)],
+        result      => {completion=>[qw(--arg --help -? -h)],
+                        type=>'option'},
     );
     test_complete(
         name        => '--arg is always completeable',
         args        => {meta=>$meta},
         comp_line   => 'CMD --arg x --',
         comp_point0 => '              ^',
-        result      => [qw(--arg --help)],
+        result      => {completion=>[qw(--arg --help)],
+                        type=>'option'},
     );
 };
 
@@ -460,37 +503,43 @@ subtest "complete element value (arg spec's element_completion)" => sub {
         args        => {meta=>$meta},
         comp_line   => 'CMD ',
         comp_point0 => '    ^',
-        result      => [qw(d dd e f)],
+        result      => {completion=>[qw(d dd e f)],
+                    },
     );
     test_complete(
         args        => {meta=>$meta},
         comp_line   => 'CMD d',
         comp_point0 => '     ^',
-        result      => [qw(d dd)],
+        result      => {completion=>[qw(d dd)],
+                    },
     );
     test_complete(
         args        => {meta=>$meta},
         comp_line   => 'CMD -',
         comp_point0 => '     ^',
-        result      => [qw(--arg --help -? -h)],
+        result      => {completion=>[qw(--arg --help -? -h)],
+                        type=>'option'},
     );
     test_complete(
         args        => {meta=>$meta},
         comp_line   => 'CMD x ',
         comp_point0 => '      ^',
-        result      => [qw(d dd e f)],
+        result      => {completion=>[qw(d dd e f)],
+                    },
     );
     test_complete(
         args        => {meta=>$meta},
         comp_line   => 'CMD x d',
         comp_point0 => '       ^',
-        result      => [qw(d dd)],
+        result      => {completion=>[qw(d dd)],
+                    },
     );
     test_complete(
         args        => {meta=>$meta},
         comp_line   => 'CMD x -',
         comp_point0 => '       ^',
-        result      => [qw(--arg --help -? -h)],
+        result      => {completion=>[qw(--arg --help -? -h)],
+                        type=>'option'},
     );
     # XXX test element_completion declines -> fallback to schema
 };
@@ -520,37 +569,43 @@ subtest "complete element value (custom_arg_element_completer HoC)" => sub {
         args        => {meta=>$meta, custom_arg_element_completer=>$caec},
         comp_line   => 'CMD ',
         comp_point0 => '    ^',
-        result      => [qw(g gg h i)],
+        result      => {completion=>[qw(g gg h i)],
+                    },
     );
     test_complete(
         args        => {meta=>$meta, custom_arg_element_completer=>$caec},
         comp_line   => 'CMD g',
         comp_point0 => '     ^',
-        result      => [qw(g gg)],
+        result      => {completion=>[qw(g gg)],
+                    },
     );
     test_complete(
         args        => {meta=>$meta, custom_arg_element_completer=>$caec},
         comp_line   => 'CMD -',
         comp_point0 => '     ^',
-        result      => [qw(--arg --help -? -h)],
+        result      => {completion=>[qw(--arg --help -? -h)],
+                        type=>'option'},
     );
     test_complete(
         args        => {meta=>$meta, custom_arg_element_completer=>$caec},
         comp_line   => 'CMD x ',
         comp_point0 => '      ^',
-        result      => [qw(g gg h i)],
+        result      => {completion=>[qw(g gg h i)],
+                    },
     );
     test_complete(
         args        => {meta=>$meta, custom_arg_element_completer=>$caec},
         comp_line   => 'CMD x g',
         comp_point0 => '       ^',
-        result      => [qw(g gg)],
+        result      => {completion=>[qw(g gg)],
+                    },
     );
     test_complete(
         args        => {meta=>$meta, custom_arg_element_completer=>$caec},
         comp_line   => 'CMD x -',
         comp_point0 => '       ^',
-        result      => [qw(--arg --help -? -h)],
+        result      => {completion=>[qw(--arg --help -? -h)],
+                        type=>'option'},
     );
     # XXX test custom_arg_element_completer declines -> fallback to element_completion
 };
@@ -578,37 +633,41 @@ subtest "complete element value (custom_arg_element_completer Code)" => sub {
         args        => {meta=>$meta, custom_arg_element_completer=>$caec},
         comp_line   => 'CMD ',
         comp_point0 => '    ^',
-        result      => [qw(g gg h i)],
+        result      => {completion=>[qw(g gg h i)],
+                    },
     );
     test_complete(
         args        => {meta=>$meta, custom_arg_element_completer=>$caec},
         comp_line   => 'CMD g',
         comp_point0 => '     ^',
-        result      => [qw(g gg)],
+        result      => {completion=>[qw(g gg)],
+                    },
     );
     test_complete(
         args        => {meta=>$meta, custom_arg_element_completer=>$caec},
         comp_line   => 'CMD -',
         comp_point0 => '     ^',
-        result      => [qw(--arg --help -? -h)],
+        result      => {completion=>[qw(--arg --help -? -h)],
+                        type=>'option'},
     );
     test_complete(
         args        => {meta=>$meta, custom_arg_element_completer=>$caec},
         comp_line   => 'CMD x ',
         comp_point0 => '      ^',
-        result      => [qw(g gg h i)],
+        result      => {completion=>[qw(g gg h i)]},
     );
     test_complete(
         args        => {meta=>$meta, custom_arg_element_completer=>$caec},
         comp_line   => 'CMD x g',
         comp_point0 => '       ^',
-        result      => [qw(g gg)],
+        result      => {completion=>[qw(g gg)]},
     );
     test_complete(
         args        => {meta=>$meta, custom_arg_element_completer=>$caec},
         comp_line   => 'CMD x -',
         comp_point0 => '       ^',
-        result      => [qw(--arg --help -? -h)],
+        result      => {completion=>[qw(--arg --help -? -h)],
+                        type=>'option'},
     );
     # XXX test custom_arg_element_completer declines -> fallback to element_completion
 };
