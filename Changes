@@ -1,5 +1,12 @@
 Revision history for Perinci-Sub-Complete
 
+0.50     2014-06-29 (SHARYANTO)
+
+         - No functional changes.
+
+         - Re-upload.
+
+
 0.49     2014-06-29 (SHARYANTO)
 
          - shell_complete_args() allows completion routines to return hash
