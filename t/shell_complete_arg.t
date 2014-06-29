@@ -672,6 +672,57 @@ subtest "complete element value (custom_arg_element_completer Code)" => sub {
     # XXX test custom_arg_element_completer declines -> fallback to element_completion
 };
 
+# since 0.49, we accept hashref from completion routine
+subtest "complete values (completion code returns hash)" => sub {
+    my $meta;
+    $meta = normalize_function_metadata({
+        v => 1.1,
+        args => {
+            arg => {
+                schema => ["array*" => of => 'str*'],
+                element_completion => sub {
+                    my %args = @_;
+                    {completion => complete_array(array=>[qw/d dd e f/], word=>$args{word}),
+                     is_path => 1,
+                 };
+                },
+                pos    => 0,
+                greedy => 1,
+            },
+        },
+    });
+    test_complete(
+        args        => {meta=>$meta},
+        comp_line   => 'CMD d',
+        comp_point0 => '     ^',
+        result      => {completion=>[qw(d dd)], is_path=>1},
+    );
+    $meta = normalize_function_metadata({
+        v => 1.1,
+        args => {
+            arg => {
+                schema => ["str*"],
+                completion => sub {
+                    my %args = @_;
+                    {completion => complete_array(array=>[qw/d dd e f/], word=>$args{word}),
+                     type => 'foo',
+                 };
+                },
+                pos    => 0,
+            },
+        },
+    });
+    test_complete(
+        args        => {meta=>$meta},
+        comp_line   => 'CMD d',
+        comp_point0 => '     ^',
+        result      => {completion=>[qw(d dd)], type=>'foo'},
+    );
+    # XXX custom_completer returns hash
+    # XXX custom_arg_completer returns hash
+    # XXX custom_arg_element_completer returns hash
+};
+
 # XXX test ENV
 # XXX test fallback arg value to file
 

@@ -269,18 +269,16 @@ sub complete_arg_val {
         return undef;
     };
 
-    my $words;
+    my $reply;
     eval { # completion sub can die, etc.
 
         my $comp = $arg_p->{completion};
         if ($comp) {
             $log->tracef("calling arg spec's completion");
             if (ref($comp) eq 'CODE') {
-                $words = $comp->(
+                $reply = $comp->(
                     word=>$word, ci=>$ci, args=>$args{args},
                     parent_args=>\%args);
-                die "Completion sub does not return array"
-                    unless ref($words) eq 'ARRAY';
                 return; # from eval
             }
 
@@ -296,7 +294,7 @@ sub complete_arg_val {
                     $log->tracef("request failed (%s), declining", $res);
                     return; # from eval
                 }
-                $words = $res->[2];
+                $reply = $res->[2];
                 return; # from eval
             }
 
@@ -313,15 +311,15 @@ sub complete_arg_val {
         # XXX normalize schema if not normalized
 
         $log->tracef("completing using schema");
-        $words = complete_from_schema(schema=>$sch, word=>$word, ci=>$ci);
+        $reply = complete_from_schema(schema=>$sch, word=>$word, ci=>$ci);
     };
     $log->debug("Completion died: $@") if $@;
-    unless ($words) {
+    unless ($reply) {
         $log->tracef("no completion from metadata possible, declining");
         return undef;
     }
 
-    $words;
+    $reply;
 }
 
 gen_modified_sub(
@@ -365,18 +363,16 @@ sub complete_arg_elem {
         return undef;
     };
 
-    my $words;
+    my $reply;
     eval { # completion sub can die, etc.
 
         my $elcomp = $arg_p->{element_completion};
         if ($elcomp) {
             $log->tracef("calling arg spec's element_completion");
             if (ref($elcomp) eq 'CODE') {
-                $words = $elcomp->(
+                $reply = $elcomp->(
                     word=>$word, ci=>$ci, index=>$index,
                     args=>$args{args}, parent_args=>\%args);
-                die "Completion sub does not return array"
-                    unless ref($words) eq 'ARRAY';
                 return; # from eval
             }
 
@@ -393,7 +389,7 @@ sub complete_arg_elem {
                     $log->tracef("request failed (%s), declining", $res);
                     return; # from eval
                 }
-                $words = $res->[2];
+                $reply = $res->[2];
                 return; # from eval
             }
 
@@ -425,15 +421,20 @@ sub complete_arg_elem {
         my $elsch = Data::Sah::normalize_schema($cs->{of});
 
         $log->tracef("completing using element schema");
-        $words = complete_from_schema(schema=>$elsch, word=>$word, ci=>$ci);
+        $reply = complete_from_schema(schema=>$elsch, word=>$word, ci=>$ci);
     };
     $log->debug("Completion died: $@") if $@;
-    unless ($words) {
+    unless ($reply) {
         $log->tracef("no completion from metadata possible, declining");
         return undef;
     }
 
-    $words;
+    $reply;
+}
+
+sub _hashify {
+    return $_[0] if ref($_[0]) eq 'HASH';
+    {completion=>$_[0]};
 }
 
 $SPEC{shell_complete_arg} = {
@@ -519,8 +520,10 @@ name or value), `words` (an array, the command line split into words), `cword`
 parsed function arguments from `words`) `remaining_words` (array, slice of
 `words` after `cword`), `meta` (the Rinci function metadata).
 
-Code should return an arrayref of completion, or `undef` to declare declination,
-on which case completion will resume using the standard builtin routine.
+Code should return an arrayref of completion, or a hashref containing completion
+in `completion` key and other hints in other keys, or `undef` to declare
+declination, on which case completion will resume using the standard builtin
+routine.
 
 A use-case of using this option: XXX.
 
@@ -793,7 +796,7 @@ sub shell_complete_arg {
         );
         $log->tracef("custom_completer returns %s", $res);
         # XXX pass type hint from custom_completer
-        return {completion=>$res} if $res;
+        return _hashify($res) if $res;
     }
 
     if ($which eq 'value') {
@@ -809,7 +812,7 @@ sub shell_complete_arg {
                     );
                     $log->tracef("custom_arg_completer returns %s", $res);
                     # XXX pass type hint from routine
-                    return {completion=>$res} if $res;
+                    return _hashify($res) if $res;
                 }
             } else {
                 $log->tracef("calling 'custom_arg_completer' (arg=%s)", $arg);
@@ -817,7 +820,7 @@ sub shell_complete_arg {
                     word=>$word, arg=>$arg, args=>$args, parent_args=>\%args);
                 $log->tracef("custom_arg_completer returns %s", $res);
                 # XXX pass type hint from routine
-                return {completion=>$res} if $res;
+                return _hashify($res) if $res;
             }
         }
 
@@ -831,11 +834,11 @@ sub shell_complete_arg {
         );
         $log->tracef("complete_arg_val() returns %s", $res);
         # XXX pass type hint from routine
-        return {completion=>$res} if $res;
+        return _hashify($res) if $res;
 
         # fallback to file
         $log->tracef("completing arg value from file (fallback)");
-        return {completion=>complete_file(word=>$word), type=>'file'};
+        return {completion=>complete_file(word=>$word), type=>'filename'};
 
     } elsif ($which eq 'element value') {
 
@@ -850,7 +853,7 @@ sub shell_complete_arg {
                     );
                     $log->tracef("custom_arg_element_completer returns %s", $res);
                     # XXX pass type hint from routine
-                    return {completion=>$res} if $res;
+                    return _hashify($res) if $res;
                 }
             } else {
                 $log->tracef("calling 'custom_arg_element_completer' (arg=%s)", $arg);
@@ -859,7 +862,7 @@ sub shell_complete_arg {
                     parent_args=>\%args);
                 $log->tracef("custom_arg_element_completer returns %s", $res);
                 # XXX pass type hint from routine
-                return {completion=>$res} if $res;
+                return _hashify($res) if $res;
             }
         }
 
@@ -873,11 +876,11 @@ sub shell_complete_arg {
         );
         $log->tracef("complete_arg_elem() returns %s", $res);
         # XXX pass type hint from routine
-        return {completion=>$res} if $res;
+        return _hashify($res) if $res;
 
         # fallback to file
         $log->tracef("completing arg element value from file (fallback)");
-        return {completion=>complete_file(word=>$word), type=>'file'};
+        return {completion=>complete_file(word=>$word), type=>'filename'};
 
     } elsif ($word eq '' || $word =~ /^--?/) {
         # which eq 'name'
@@ -933,7 +936,7 @@ sub shell_complete_arg {
     } else {
 
         # fallback
-        return {completion=>complete_file(word=>$word), type=>'file'};
+        return {completion=>complete_file(word=>$word), type=>'filename'};
 
     }
 }
