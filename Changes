@@ -1,5 +1,13 @@
 Revision history for Perinci-Sub-Complete
 
+0.51     2014-07-01 (SHARYANTO)
+
+         - No functional changes.
+
+         - [Bugfix] Avoid Perl autovivification which cause an arg that has no
+           schema to have a schema of [].
+
+
 0.50     2014-06-29 (SHARYANTO)
 
          - No functional changes.
