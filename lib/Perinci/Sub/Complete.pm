@@ -901,9 +901,8 @@ sub shell_complete_arg {
             for my $a (@a) {
                 $a =~ s/[_.]/-/g;
                 my @w;
-                my $type = $as->{schema}[0];
-                if (defined($type) && $type eq 'bool' && length($a) > 1 &&
-                        !$as->{schema}[1]{is}) {
+                if ($as->{schema} && $as->{schema}[0] eq 'bool' &&
+                        length($a) > 1 && !$as->{schema}[1]{is}) {
                     @w = ("--$a", "--no$a");
                 } else {
                     @w = length($a) == 1 ? ("-$a") : ("--$a");
