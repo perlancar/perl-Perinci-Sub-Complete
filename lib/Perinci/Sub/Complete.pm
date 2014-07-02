@@ -961,9 +961,8 @@ and C<COMP_CWORD> by bash.
 
 =head1 SEE ALSO
 
-L<Perinci::CmdLine>
+L<Complete>
 
-Other shell completion modules on CPAN: L<Getopt::Complete>,
-L<Bash::Completion>.
+L<Perinci::CmdLine>
 
 =cut
