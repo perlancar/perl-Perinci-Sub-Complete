@@ -1,5 +1,13 @@
 Revision history for Perinci-Sub-Complete
 
+0.53     2014-07-02 (SHARYANTO)
+
+         [INCOMPATIBLE CHANGES]
+
+         - Rename function shell_complete_arg() to complete_cli_arg() for
+           consistency (all completion routine now uses /^complete_/).
+
+
 0.52     2014-07-02 (SHARYANTO)
 
          - No functional changes.
