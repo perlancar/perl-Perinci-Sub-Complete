@@ -7,7 +7,7 @@ use warnings;
 
 use Complete::Util qw(complete_array_elem);
 use File::Which qw(which);
-use Perinci::Sub::Complete qw(shell_complete_arg);
+use Perinci::Sub::Complete qw(complete_cli_arg);
 use Perinci::Sub::Normalize qw(normalize_function_metadata);
 use Test::More 0.98;
 
@@ -749,7 +749,7 @@ sub test_complete {
         local $ENV{COMP_LINE}  = $line;
         local $ENV{COMP_POINT} = $point;
 
-        my $res = shell_complete_arg(%{$args{args}});
+        my $res = complete_cli_arg(%{$args{args}});
         is_deeply($res, $args{result}, "result") or diag explain($res);
 
         done_testing();

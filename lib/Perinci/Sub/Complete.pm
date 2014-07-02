@@ -24,7 +24,7 @@ our @EXPORT_OK = qw(
                        complete_from_schema
                        complete_arg_val
                        complete_arg_elem
-                       shell_complete_arg
+                       complete_cli_arg
                );
 our %SPEC;
 
@@ -437,7 +437,7 @@ sub _hashify {
     {completion=>$_[0]};
 }
 
-$SPEC{shell_complete_arg} = {
+$SPEC{complete_cli_arg} = {
     v => 1.1,
     summary => 'Complete command-line argument using Rinci function metadata',
     description => <<'_',
@@ -516,7 +516,7 @@ Code will be called with a hash argument, with these keys: `which` (a string
 with value `name` or `value` depending on whether we should complete argument
 name or value), `words` (an array, the command line split into words), `cword`
 (int, position of word in `words`), `word` (the word to be completed),
-`parent_args` (hash, arguments given to `shell_complete_arg()`), `args` (hash,
+`parent_args` (hash, arguments given to `complete_cli_arg()`), `args` (hash,
 parsed function arguments from `words`) `remaining_words` (array, slice of
 `words` after `cword`), `meta` (the Rinci function metadata).
 
@@ -608,19 +608,10 @@ _
     },
     result_naked => 1,
     result => {
-        summary => 'Shell completion result',
-        description => <<'_',
-
-A hash. Contains the actual completion result in `completion` key (value is an
-array) with some extra metadata: `type` key. The metadata gives hints to
-formatting routine on how to properly display (escape special characters) when
-outputting to shell.
-
-_
         schema => 'hash*',
     },
 };
-sub shell_complete_arg {
+sub complete_cli_arg {
     require List::MoreUtils;
     require Perinci::Sub::GetArgs::Argv;
     require UUID::Random;
