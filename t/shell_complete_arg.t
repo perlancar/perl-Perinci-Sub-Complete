@@ -5,7 +5,7 @@ use strict;
 use warnings;
 #use Log::Any '$log';
 
-use Complete::Util qw(complete_array);
+use Complete::Util qw(complete_array_elem);
 use File::Which qw(which);
 use Perinci::Sub::Complete qw(shell_complete_arg);
 use Perinci::Sub::Normalize qw(normalize_function_metadata);
@@ -27,7 +27,7 @@ my $meta = normalize_function_metadata({
             schema => ["str*" => {}],
             completion => sub {
                 my (%args) = @_;
-                complete_array(array=>[qw(apple apricot cherry cranberry)], word=>$args{word});
+                complete_array_elem(array=>[qw(apple apricot cherry cranberry)], word=>$args{word});
             }
         },
         str2  => {
@@ -200,7 +200,7 @@ test_complete(
                     custom_arg_completer => {
                         str1=>sub {
                             my %args = @_;
-                            complete_array(array=>[qw/a b c/], word=>$args{word});
+                            complete_array_elem(array=>[qw/a b c/], word=>$args{word});
                         }}},
     comp_line   => 'CMD --str1 ',
     comp_point0 => '           ^',
@@ -214,7 +214,7 @@ test_complete(
                     custom_arg_completer => {
                         str2=>sub {
                             my %args = @_;
-                            complete_array(array=>[qw(a b c)], word=>$args{word});
+                            complete_array_elem(array=>[qw(a b c)], word=>$args{word});
                     }}},
     comp_line   => 'CMD --str1 ',
     comp_point0 => '           ^',
@@ -226,7 +226,7 @@ test_complete(
     args        => {meta=>$meta,
                     custom_arg_completer => sub {
                         my %args = @_;
-                        complete_array(array=>[qw(a b c)], word=>$args{word});
+                        complete_array_elem(array=>[qw(a b c)], word=>$args{word});
                     }},
     comp_line   => 'CMD --str1 ',
     comp_point0 => '           ^',
@@ -241,7 +241,7 @@ my $meta2 = normalize_function_metadata({
             schema => ["str*" => {}],
             completion=>sub{
                 my %args = @_;
-                complete_array(array=>[qw/a b c d/], word=>$args{word});
+                complete_array_elem(array=>[qw/a b c d/], word=>$args{word});
             },
             pos => 0,
         },
@@ -492,7 +492,7 @@ subtest "complete element value (arg spec's element_completion)" => sub {
                 schema => ["array*" => of => [str => in => [qw/a aa b c/]]],
                 element_completion => sub {
                     my %args = @_;
-                    complete_array(array=>[qw/d dd e f/], word=>$args{word});
+                    complete_array_elem(array=>[qw/d dd e f/], word=>$args{word});
                 },
                 pos    => 0,
                 greedy => 1,
@@ -552,7 +552,7 @@ subtest "complete element value (custom_arg_element_completer HoC)" => sub {
                 schema => ["array*" => of => [str => in => [qw/a aa b c/]]],
                 element_completion => sub {
                     my %args = @_;
-                    complete_array(array=>[qw/d dd e f/], word=>$args{word});
+                    complete_array_elem(array=>[qw/d dd e f/], word=>$args{word});
                 },
                 pos    => 0,
                 greedy => 1,
@@ -562,7 +562,7 @@ subtest "complete element value (custom_arg_element_completer HoC)" => sub {
     my $caec = {
         arg => sub {
             my %args = @_;
-            complete_array(array=>[qw/g gg h i/], word=>$args{word});
+            complete_array_elem(array=>[qw/g gg h i/], word=>$args{word});
         },
     };
     test_complete(
@@ -618,7 +618,7 @@ subtest "complete element value (custom_arg_element_completer Code)" => sub {
                 schema => ["array*" => of => [str => in => [qw/a aa b c/]]],
                 element_completion => sub {
                     my %args = @_;
-                    complete_array(array=>[qw/d dd e f/], word=>$args{word});
+                    complete_array_elem(array=>[qw/d dd e f/], word=>$args{word});
                 },
                 pos    => 0,
                 greedy => 1,
@@ -627,7 +627,7 @@ subtest "complete element value (custom_arg_element_completer Code)" => sub {
     });
     my $caec = sub {
         my %args = @_;
-        complete_array(array=>[qw/g gg h i/], word=>$args{word});
+        complete_array_elem(array=>[qw/g gg h i/], word=>$args{word});
     };
     test_complete(
         args        => {meta=>$meta, custom_arg_element_completer=>$caec},
@@ -682,7 +682,7 @@ subtest "complete values (completion code returns hash)" => sub {
                 schema => ["array*" => of => 'str*'],
                 element_completion => sub {
                     my %args = @_;
-                    {completion => complete_array(array=>[qw/d dd e f/], word=>$args{word}),
+                    {completion => complete_array_elem(array=>[qw/d dd e f/], word=>$args{word}),
                      is_path => 1,
                  };
                 },
@@ -704,7 +704,7 @@ subtest "complete values (completion code returns hash)" => sub {
                 schema => ["str*"],
                 completion => sub {
                     my %args = @_;
-                    {completion => complete_array(array=>[qw/d dd e f/], word=>$args{word}),
+                    {completion => complete_array_elem(array=>[qw/d dd e f/], word=>$args{word}),
                      type => 'foo',
                  };
                 },
