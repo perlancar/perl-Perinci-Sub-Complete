@@ -1,5 +1,12 @@
 Revision history for Perinci-Sub-Complete
 
+0.54     2014-07-18 (SHARYANTO)
+
+         - No functional changes.
+
+         - Adjust to Complete::Bash 0.04.
+
+
 0.53     2014-07-02 (SHARYANTO)
 
          [INCOMPATIBLE CHANGES]
