@@ -1,5 +1,21 @@
 Revision history for Perinci-Sub-Complete
 
+0.55     2014-07-18 (SHARYANTO)
+
+         - Adjust to Perinci::Sub::GetArgs::Argv 0.44, which makes it more
+           convenient for us to do completion (get_args_from_argv() returns the
+           result from gen_getopt_long_spec_from_meta(), which contains all
+           sorts of goodies ready for use, like func.opts_by_arg,
+           func.opts_by_common, etc.
+
+         [INCOMPATIBLE CHANGES]
+
+         - To make it easy to work with the new get_args_from_argv(),
+           'common_opts' has been changed to be in the same format that that
+           function expects, which is a hash of Getopt::Long opt spec &
+           handlers.
+
+
 0.54     2014-07-18 (SHARYANTO)
 
          - No functional changes.
