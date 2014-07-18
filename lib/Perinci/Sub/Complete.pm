@@ -622,7 +622,7 @@ sub complete_cli_arg {
     my $words = $args{words};
     my $cword = $args{cword} // 0;
     if (!$words) {
-        ($words, $cword) = parse_cmdline();
+        ($words, $cword) = @{ parse_cmdline() };
     }
     my $word = $words->[$cword] // "";
 
