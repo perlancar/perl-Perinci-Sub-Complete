@@ -1,5 +1,12 @@
 Revision history for Perinci-Sub-Complete
 
+0.56     2014-07-18 (SHARYANTO)
+
+         - [Bugfix] Excluded the option we're trying to complete ('cmd --help^'
+           or 'cmd -h^' didn't work because we excluded that option from the
+           list!).
+
+
 0.55     2014-07-18 (SHARYANTO)
 
          - Adjust to Perinci::Sub::GetArgs::Argv 0.44, which makes it more
