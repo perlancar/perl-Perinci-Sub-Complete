@@ -878,13 +878,20 @@ sub complete_cli_arg {
         # find completable args (the one that has not been mentioned or should
         # always be mentioned)
 
-        my @words = @{ $genres->[3]{'func.common_opts'} };
-        my $arg_opts = $genres->[3]{'func.arg_opts'};
+        my @words;
+        my $opts_by_common = $genres->[3]{'func.opts_by_common'};
+      CO:
+        for my $k (keys %$opts_by_common) {
+            my $v = $opts_by_common->{$k};
+            for (@$words) { next CO if $_ ~~ @$v }
+            push @words, @$v;
+        }
+        my $opts_by_arg = $genres->[3]{'func.opts_by_arg'};
       ARG:
         for my $arg (keys %$args_p) {
             my $as = $args_p->{$arg};
             next if exists($args->{$arg}) && (!$as || !$as->{greedy});
-            push @words, @{ $arg_opts->{$arg} };
+            push @words, @{ $opts_by_arg->{$arg} };
         }
 
         return {completion=>complete_array_elem(word=>$word, array=>\@words),

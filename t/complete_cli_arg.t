@@ -43,7 +43,7 @@ test_complete(
     args        => {meta=>$meta},
     comp_line   => 'CMD ',
     comp_point0 => '    ^',
-    result      => {completion=>[qw(--bool1 --bool2 --help --nobool1 --nobool2
+    result      => {completion=>[qw(--bool1 --bool2 --help --no-bool1 --no-bool2 --nobool1 --nobool2
                                     --str1 --str2 -? -h)],
                     type=>'option'},
 );
@@ -52,7 +52,7 @@ test_complete(
     args        => {meta=>$meta},
     comp_line   => 'CMD -',
     comp_point0 => '     ^',
-    result      => {completion=>[qw(--bool1 --bool2 --help --nobool1 --nobool2
+    result      => {completion=>[qw(--bool1 --bool2 --help --no-bool1 --no-bool2 --nobool1 --nobool2
                                     --str1 --str2 -? -h)],
                     type=>'option'},
 );
@@ -61,7 +61,7 @@ test_complete(
     args        => {meta=>$meta},
     comp_line   => 'CMD --',
     comp_point0 => '      ^',
-    result      => {completion=>[qw(--bool1 --bool2 --help --nobool1 --nobool2
+    result      => {completion=>[qw(--bool1 --bool2 --help --no-bool1 --no-bool2 --nobool1 --nobool2
                                     --str1 --str2)],
                     type=>'option'},
 );
@@ -70,7 +70,7 @@ test_complete(
     args        => {meta=>$meta},
     comp_line   => 'CMD --b',
     comp_point0 => '      ^',
-    result      => {completion=>[qw(--bool1 --bool2 --help --nobool1 --nobool2
+    result      => {completion=>[qw(--bool1 --bool2 --help --no-bool1 --no-bool2 --nobool1 --nobool2
                                     --str1 --str2)],
                     type=>'option'},
 );
@@ -103,7 +103,7 @@ test_complete(
     args        => {meta=>$meta},
     comp_line   => 'CMD --bool1 ',
     comp_point0 => '            ^',
-    result      => {completion=>[qw(--bool2 --help --nobool2 --str1 --str2 -? -h)],
+    result      => {completion=>[qw(--bool2 --help --no-bool2 --nobool2 --str1 --str2 -? -h)],
                     type=>'option'},
 );
 test_complete(
@@ -111,7 +111,7 @@ test_complete(
     args        => {meta=>$meta},
     comp_line   => 'CMD --nobool1 ',
     comp_point0 => '              ^',
-    result      => {completion=>[qw(--bool2 --help --nobool2 --str1 --str2 -? -h)],
+    result      => {completion=>[qw(--bool2 --help --no-bool2 --nobool2 --str1 --str2 -? -h)],
                     type=>'option'},
 );
 test_complete(
@@ -119,7 +119,7 @@ test_complete(
     args        => {meta=>$meta},
     comp_line   => 'CMD --str1 1 --nobool1 ',
     comp_point0 => '                       ^',
-    result      => {completion=>[qw(--bool2 --help --nobool2 --str2 -? -h)],
+    result      => {completion=>[qw(--bool2 --help --no-bool2 --nobool2 --str2 -? -h)],
                     type=>'option'},
 );
 test_complete(
@@ -159,7 +159,7 @@ test_complete(
     args        => {meta=>$meta},
     comp_line   => 'CMD --bool1 -',
     comp_point0 => '             ^',
-    result      => {completion=>[qw(--bool2 --help --nobool2 --str1 --str2 -? -h)],
+    result      => {completion=>[qw(--bool2 --help --no-bool2 --nobool2 --str1 --str2 -? -h)],
                     type=>'option'},
 );
 test_complete(
@@ -340,7 +340,7 @@ test_complete(
         args        => {meta=>$meta},
         comp_line   => 'CMD --bool -',
         comp_point0 => '            ^',
-        result      => {completion=>[qw(--bool --help --nobool -? -h)],
+        result      => {completion=>[qw(--bool --help --no-bool --nobool -? -h)],
                     type=>'option'},
     );
 }
@@ -384,7 +384,7 @@ test_complete(
     args        => {meta=>$meta3},
     comp_line   => 'CMD ',
     comp_point0 => '    ^',
-    result      => {completion=>[qw(--S2 --alias1 --b2 --b3 --help --noalias1 --nob2 --s2
+    result      => {completion=>[qw(--S2 --alias1 --b2 --b3 --help --no-alias1 --no-b2 --noalias1 --nob2 --s2
                                     -? -S -X -b -h -s)],
                     type=>'option'},
 );
@@ -411,15 +411,6 @@ my $meta5 = normalize_function_metadata({
     args => {},
     features => {dry_run=>1},
 });
-
-test_complete(
-    name        => 'special option: dry-run',
-    args        => {meta=>$meta5},
-    comp_line   => 'CMD --d',
-    comp_point0 => '       ^',
-    result      => {completion=>[qw(--dry-run)],
-                    type=>'option'},
-);
 
 subtest "complete element value (schema)" => sub {
     my $meta = normalize_function_metadata({
@@ -749,7 +740,9 @@ sub test_complete {
         local $ENV{COMP_LINE}  = $line;
         local $ENV{COMP_POINT} = $point;
 
-        my $res = complete_cli_arg(%{$args{args}});
+        my $co = {'help|h|?'=>sub{}};
+
+        my $res = complete_cli_arg(%{$args{args}}, common_opts=>$co);
         is_deeply($res, $args{result}, "result") or diag explain($res);
 
         done_testing();
