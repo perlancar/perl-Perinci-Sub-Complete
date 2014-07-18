@@ -883,7 +883,10 @@ sub complete_cli_arg {
       CO:
         for my $k (keys %$opts_by_common) {
             my $v = $opts_by_common->{$k};
-            for (@$words) { next CO if $_ ~~ @$v }
+            for my $i (0..@$words-1) {
+                my $w = $words->[$i];
+                next CO if $i != $cword && defined($w) && $w ~~ @$v;
+            }
             push @words, @$v;
         }
         my $opts_by_arg = $genres->[3]{'func.opts_by_arg'};
@@ -894,6 +897,7 @@ sub complete_cli_arg {
             push @words, @{ $opts_by_arg->{$arg} };
         }
 
+        $log->tracef("completing from option names %s", \@words);
         return {completion=>complete_array_elem(word=>$word, array=>\@words),
                 type=>'option'};
 
