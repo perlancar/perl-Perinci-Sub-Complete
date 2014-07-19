@@ -1,5 +1,12 @@
 Revision history for Perinci-Sub-Complete
 
+0.57     2014-07-19 (SHARYANTO)
+
+         - No functional changes.
+
+         - Adjust to Complete::Bash 0.06.
+
+
 0.56     2014-07-18 (SHARYANTO)
 
          - [Bugfix] Excluded the option we're trying to complete ('cmd --help^'
