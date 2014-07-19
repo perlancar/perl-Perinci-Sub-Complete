@@ -628,7 +628,7 @@ sub complete_cli_arg {
 
     if ($word =~ /^\$/) {
         $log->tracef("word begins with \$, completing env vars");
-        return {completion=>complete_env(word=>$word), type=>'env'};
+        return {completion=>complete_env(word=>$word), escmode=>'shellvar'};
     }
 
     if ((my $v = $meta->{v} // 1.0) != 1.1) {
@@ -828,7 +828,7 @@ sub complete_cli_arg {
 
         # fallback to file
         $log->tracef("completing arg value from file (fallback)");
-        return {completion=>complete_file(word=>$word), type=>'filename', is_path=>1};
+        return {completion=>complete_file(word=>$word), escmode=>'filename', path_sep=>'/'};
 
     } elsif ($which eq 'element value') {
 
@@ -870,7 +870,7 @@ sub complete_cli_arg {
 
         # fallback to file
         $log->tracef("completing arg element value from file (fallback)");
-        return {completion=>complete_file(word=>$word), type=>'filename', is_path=>1};
+        return {completion=>complete_file(word=>$word), escmode=>'filename', path_sep=>'/'};
 
     } elsif ($word eq '' || $word =~ /^--?/) {
         # which eq 'name'
@@ -899,12 +899,12 @@ sub complete_cli_arg {
 
         $log->tracef("completing from option names %s", \@words);
         return {completion=>complete_array_elem(word=>$word, array=>\@words),
-                type=>'option'};
+                escmode=>'option'};
 
     } else {
 
         # fallback
-        return {completion=>complete_file(word=>$word), type=>'filename', is_path=>1};
+        return {completion=>complete_file(word=>$word), escmode=>'filename', path_sep=>'/'};
 
     }
 }
