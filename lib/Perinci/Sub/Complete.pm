@@ -280,9 +280,13 @@ sub complete_arg_val {
                     word=>$word, ci=>$ci, args=>$args{args},
                     parent_args=>\%args);
                 return; # from eval
+            } elsif (ref($comp) eq 'ARRAY') {
+                $reply = complete_array_elem(
+                    array=>$comp, word=>$word, ci=>$ci);
+                return; # from eval
             }
 
-            $log->tracef("arg spec's completion is not a coderef");
+            $log->tracef("arg spec's completion is not a coderef or arrayref");
             if ($args{riap_client} && $args{riap_server_url}) {
                 $log->tracef("trying to request complete_arg_val to server");
                 my $res = $args{riap_client}->request(
@@ -374,9 +378,13 @@ sub complete_arg_elem {
                     word=>$word, ci=>$ci, index=>$index,
                     args=>$args{args}, parent_args=>\%args);
                 return; # from eval
+            } elsif (ref($elcomp) eq 'ARRAY') {
+                $reply = complete_array_elem(
+                    array=>$elcomp, word=>$word, ci=>$ci);
             }
 
-            $log->tracef("arg spec's element_completion is not a coderef");
+            $log->tracef("arg spec's element_completion is not a coderef or ".
+                             "arrayref");
             if ($args{riap_client} && $args{riap_server_url}) {
                 $log->tracef("trying to request complete_arg_elem to server");
                 my $res = $args{riap_client}->request(

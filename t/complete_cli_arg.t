@@ -714,6 +714,37 @@ subtest "complete values (completion code returns hash)" => sub {
     # XXX custom_arg_element_completer returns hash
 };
 
+# since 0.58, we accept completion property as array (though deliberately
+# undocumented for now)
+subtest "completion & element_completion code is array" => sub {
+    my $meta;
+    $meta = normalize_function_metadata({
+        v => 1.1,
+        args => {
+            array => {
+                schema => ["array*" => of => "str*"],
+                element_completion => [qw/aa ab b/],
+            },
+            str => {
+                schema => "str*",
+                completion => [qw/st ss t/],
+            },
+        },
+    });
+    test_complete(
+        args        => {meta=>$meta},
+        comp_line   => 'CMD --array a',
+        comp_point0 => '             ^',
+        result      => [qw/aa ab/],
+    );
+    test_complete(
+        args        => {meta=>$meta},
+        comp_line   => 'CMD --str s',
+        comp_point0 => '           ^',
+        result      => [qw/ss st/],
+    );
+};
+
 # XXX test ENV
 # XXX test fallback arg value to file
 
