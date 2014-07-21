@@ -9,7 +9,7 @@ use Perinci::Sub::Complete qw(complete_from_schema);
 #use Data::Sah qw(normalize_schema);
 use Test::More 0.98;
 
-# XXX in clause (btw, already tested in shell_complete_arg.t)
+# XXX in clause (btw, already tested in complete_cli_arg.t)
 # XXX bool 0/1
 # XXX is clause
 
