@@ -674,7 +674,7 @@ subtest "complete values (completion code returns hash)" => sub {
                 element_completion => sub {
                     my %args = @_;
                     {completion => complete_array_elem(array=>[qw/d dd e f/], word=>$args{word}),
-                     is_path => 1,
+                     path_sep => '/',
                  };
                 },
                 pos    => 0,
@@ -686,7 +686,7 @@ subtest "complete values (completion code returns hash)" => sub {
         args        => {meta=>$meta},
         comp_line   => 'CMD d',
         comp_point0 => '     ^',
-        result      => {completion=>[qw(d dd)], is_path=>1},
+        result      => {completion=>[qw(d dd)], path_sep=>'/'},
     );
     $meta = normalize_function_metadata({
         v => 1.1,
