@@ -251,8 +251,7 @@ test_complete(
 test_complete(
     name        => 'complete arg value, pos (2)',
     args        => {meta=>$meta2},
-    comp_line   => 'CMD a ',
-    comp_point0 => '      ^',
+    comp_line0  => 'CMD a ^',
     result      => {completion=>[qw(e f g h)],
                 },
 );
@@ -273,8 +272,7 @@ test_complete(
 test_complete(
     name        => 'complete arg value, pos (3b)',
     args        => {meta=>$meta2},
-    comp_line   => 'CMD a e j',
-    comp_point0 => '         ^',
+    comp_line0  => 'CMD a e j^',
     result      => {completion=>[qw(j)],
                 },
 );
@@ -674,12 +672,12 @@ subtest "completion & element_completion code is array" => sub {
     test_complete(
         args        => {meta=>$meta},
         comp_line0  => 'CMD --array a^',
-        result      => [qw/aa ab/],
+        result      => {completion=>[qw/aa ab/]},
     );
     test_complete(
         args        => {meta=>$meta},
         comp_line0  => 'CMD --str s^',
-        result      => [qw/ss st/],
+        result      => {completion=>[qw/ss st/]},
     );
 };
 
@@ -692,18 +690,7 @@ done_testing();
 sub test_complete {
     my (%args) = @_;
 
-    my $line  = $args{comp_line};
-    my $point = index($args{comp_point0}, '^');
-    my $name = $args{name} // "";
-    my $name2 = $line;
-    substr($name2, $point, $point) = '^';
-    if ($name) {
-        $name = "$name (q($name2))";
-    } else {
-        $name = "q($name2)";
-    }
-
-    subtest $name => sub {
+    subtest +($args{name} // $args{comp_line0}) => sub {
 
         # $args{comp_line0} contains comp_line with '^' indicating where
         # comp_point should be, the caret will be stripped. this is more
