@@ -595,8 +595,22 @@ _
             summary => 'Common options',
             description => <<'_',
 
-A hash of Getopt::Long option specifications and handlers. Will be passed to
-`get_args_from_argv()`.
+A hash where the values are hashes containing these keys: `getopt` (Getopt::Long
+option specification), `handler` (Getopt::Long handler). Will be passed to
+`get_args_from_argv()`. Example:
+
+    {
+        help => {
+            getopt  => 'help|h|?',
+            handler => sub { ... },
+            summary => 'Display help and exit',
+        },
+        version => {
+            getopt  => 'version|v',
+            handler => sub { ... },
+            summary => 'Display version and exit',
+        },
+    }
 
 _
             schema => ['hash*'],
