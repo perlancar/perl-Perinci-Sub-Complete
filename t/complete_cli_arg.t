@@ -705,7 +705,7 @@ sub test_complete {
         local $ENV{COMP_LINE}  = $comp_line;
         local $ENV{COMP_POINT} = $comp_point;
 
-        my $co = {'help|h|?'=>sub{}};
+        my $co = {help => {getopt=>'help|h|?', handler=>sub{}}};
 
         my $res = complete_cli_arg(%{$args{args}}, common_opts=>$co);
         is_deeply($res, $args{result}, "result") or diag explain($res);
