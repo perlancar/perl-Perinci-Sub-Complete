@@ -340,7 +340,7 @@ gen_modified_sub(
     },
 );
 sub complete_arg_elem {
-    require Data::Sah;
+    require Data::Sah::Normalize;
 
     my %args = @_;
 
@@ -424,9 +424,9 @@ sub complete_arg_elem {
             return; # from eval
         }
 
-        # normalize subschema because Data::Sah's normalize_schema (as of 0.28)
-        # currently does not do it yet
-        my $elsch = Data::Sah::normalize_schema($cs->{of});
+        # normalize subschema because normalize_schema (as of 0.01) currently
+        # does not do it yet
+        my $elsch = Data::Sah::Normalize::normalize_schema($cs->{of});
 
         $log->tracef("completing using element schema");
         $reply = complete_from_schema(schema=>$elsch, word=>$word, ci=>$ci);
