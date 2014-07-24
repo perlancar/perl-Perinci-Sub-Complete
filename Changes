@@ -1,5 +1,14 @@
 Revision history for Perinci-Sub-Complete
 
+0.58     2014-07-24 (SHARYANTO)
+
+         - No functional changes.
+
+         - Some minor updates to tests.
+
+         - Use Data::Sah::Normalize instead of Data::Sah, to reduce deps.
+
+
 0.57     2014-07-19 (SHARYANTO)
 
          - No functional changes.
