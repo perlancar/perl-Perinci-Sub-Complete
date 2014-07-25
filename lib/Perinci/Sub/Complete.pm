@@ -643,8 +643,9 @@ sub complete_cli_arg {
     my $cword = $args{cword} // 0;
     if (!$words) {
         ($words, $cword) = @{ parse_cmdline() };
+        shift @$words; $cword--; # strip command name
     }
-    my $word = $words->[$cword] // "";
+    my $word = $words->[$cword];
 
     $log->tracef("words=%s, cword=%d, word=%s", $words, $cword, $word);
 

@@ -66,8 +66,7 @@ test_complete(
     name        => 'complete arg name 4',
     args        => {meta=>$meta},
     comp_line0  => 'CMD --^b',
-    result      => {completion=>[qw(--bool1 --bool2 --help --no-bool1 --no-bool2 --nobool1 --nobool2
-                                    --str1 --str2)],
+    result      => {completion=>[qw(--bool1 --bool2)],
                     escmode=>'option'},
 );
 test_complete(
@@ -164,7 +163,7 @@ test_complete(
 test_complete(
     name        => 'complete arg value (spec "completion") (2)',
     args        => {meta=>$meta},
-    comp_line0  => 'CMD --str1 ap^p',
+    comp_line0  => 'CMD --str1 ap^',
     result      => {completion=>[qw(apple apricot)],
                 },
 );
@@ -700,7 +699,7 @@ sub test_complete {
         my $comp_point = index($comp_line, '^');
         $comp_point >= 0 or
             die "BUG: comp_line0 should contain ^ to indicate where comp_point is";
-        $comp_point =~ s/\^//;
+        $comp_line =~ s/\^//;
 
         local $ENV{COMP_LINE}  = $comp_line;
         local $ENV{COMP_POINT} = $comp_point;
