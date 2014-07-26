@@ -6,13 +6,6 @@ use warnings;
 use experimental 'smartmatch';
 use Log::Any '$log';
 
-#use List::MoreUtils qw(firstidx);
-use Complete::Bash qw(parse_cmdline);
-use Complete::Util qw(
-                         complete_array_elem
-                         complete_env
-                         complete_file
-                 );
 use Perinci::Sub::Util qw(gen_modified_sub);
 
 # DATE
@@ -496,22 +489,14 @@ _
             req => 1,
         },
         words => {
-            summary => 'Command-line, broken as words',
+            summary => 'Command-line arguments',
             schema => ['array*' => {of=>'str*'}],
-            description => <<'_',
-
-If unset, will be taken from COMP_LINE and COMP_POINT.
-
-_
+            req => 1,
         },
         cword => {
-            summary => 'On which word cursor is located (zero-based)',
-            description => <<'_',
-
-If unset, will be taken from COMP_LINE and COMP_POINT.
-
-_
+            summary => 'On which argument cursor is located (zero-based)',
             schema => 'int*',
+            req => 1,
         },
         custom_completer => {
             summary => 'Supply custom completion routine',
@@ -632,22 +617,14 @@ _
     },
 };
 sub complete_cli_arg {
-    require List::MoreUtils;
-    require Perinci::Sub::GetArgs::Argv;
-    require UUID::Random;
+    require Complete::Getopt::Long;
 
     my %args = @_;
-    $log->tracef("=> complete_arg(%s)", \%args);
     my $meta  = $args{meta} or die "Please specify meta";
-    my $words = $args{words};
-    my $cword = $args{cword} // 0;
-    if (!$words) {
-        ($words, $cword) = @{ parse_cmdline() };
-        shift @$words; $cword--; # strip command name
-    }
-    my $word = $words->[$cword];
+    my $words = $args{words} or die "Please specify words";
+    my $cword = $args{cword}; defined($cword) or die "Please specify cword";
 
-    $log->tracef("words=%s, cword=%d, word=%s", $words, $cword, $word);
+    my $word = $words->[$cword];
 
     if ($word =~ /^\$/) {
         $log->tracef("word begins with \$, completing env vars");
@@ -933,11 +910,14 @@ sub complete_cli_arg {
 }
 
 1;
-# ABSTRACT: Shell completion routines using Rinci metadata
+# ABSTRACT: Complete command-line argument using Rinci metadata
 
 =for Pod::Coverage ^(.+)$
 
 =head1 SYNOPSIS
+
+See L<Perinci::CmdLine> or L<Perinci::CmdLine::Lite> or L<App::riap> which use
+this module.
 
 
 =head1 DESCRIPTION
