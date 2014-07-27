@@ -5,6 +5,7 @@ use strict;
 use warnings;
 #use Log::Any '$log';
 
+use Complete::Bash qw(parse_cmdline);
 use Complete::Util qw(complete_array_elem);
 use File::Which qw(which);
 use Perinci::Sub::Complete qw(complete_cli_arg);
@@ -701,12 +702,12 @@ sub test_complete {
             die "BUG: comp_line0 should contain ^ to indicate where comp_point is";
         $comp_line =~ s/\^//;
 
-        local $ENV{COMP_LINE}  = $comp_line;
-        local $ENV{COMP_POINT} = $comp_point;
+        my ($words, $cword) = @{ parse_cmdline($comp_line, $comp_point, '=') };
 
-        my $co = {help => {getopt=>'help|h|?', handler=>sub{}}};
+        my $copts = {help => {getopt=>'help|h|?', handler=>sub{}}};
 
-        my $res = complete_cli_arg(%{$args{args}}, common_opts=>$co);
+        my $res = complete_cli_arg(
+            %{$args{args}}, words=>$words, cword=>$cword, common_opts=>$copts);
         is_deeply($res, $args{result}, "result") or diag explain($res);
 
         done_testing();

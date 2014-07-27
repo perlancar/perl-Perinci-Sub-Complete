@@ -1,15 +1,16 @@
 package Perinci::Sub::Complete;
 
+# DATE
+# VERSION
+
 use 5.010001;
 use strict;
 use warnings;
 use experimental 'smartmatch';
 use Log::Any '$log';
 
+use Complete::Util qw(complete_array_elem);
 use Perinci::Sub::Util qw(gen_modified_sub);
-
-# DATE
-# VERSION
 
 require Exporter;
 our @ISA       = qw(Exporter);
@@ -204,6 +205,13 @@ sub complete_from_schema {
 $SPEC{complete_arg_val} = {
     v => 1.1,
     summary => 'Given argument name and function metadata, complete value',
+    description => <<'_',
+
+Will attempt to complete using the completion routine specified in the argument
+specification, or if that is not specified, from argument's schema using
+`complete_from_schema`.
+
+_
     args => {
         meta => {
             summary => 'Rinci function metadata, must be normalized',
@@ -228,8 +236,8 @@ $SPEC{complete_arg_val} = {
                 'will be passed to completion routines',
             schema  => 'hash',
         },
-        parent_args => {
-            summary => 'To pass parent arguments to completion routines',
+        extras => {
+            summary => 'To pass extra arguments to completion routines',
             schema  => 'hash',
         },
 
@@ -271,7 +279,7 @@ sub complete_arg_val {
             if (ref($comp) eq 'CODE') {
                 $reply = $comp->(
                     word=>$word, ci=>$ci, args=>$args{args},
-                    parent_args=>\%args);
+                    extras=>$args{extras});
                 return; # from eval
             } elsif (ref($comp) eq 'ARRAY') {
                 $reply = complete_array_elem(
@@ -365,11 +373,11 @@ sub complete_arg_elem {
 
         my $elcomp = $arg_p->{element_completion};
         if ($elcomp) {
-            $log->tracef("calling arg spec's element_completion");
+            $log->tracef("calling arg spec's element_completion [$index]");
             if (ref($elcomp) eq 'CODE') {
                 $reply = $elcomp->(
                     word=>$word, ci=>$ci, index=>$index,
-                    args=>$args{args}, parent_args=>\%args);
+                    args=>$args{args}, extras=>$args{extras});
                 return; # from eval
             } elsif (ref($elcomp) eq 'ARRAY') {
                 $reply = complete_array_elem(
@@ -421,7 +429,7 @@ sub complete_arg_elem {
         # does not do it yet
         my $elsch = Data::Sah::Normalize::normalize_schema($cs->{of});
 
-        $log->tracef("completing using element schema");
+        $log->tracef("completing using element schema [$index]");
         $reply = complete_from_schema(schema=>$elsch, word=>$word, ci=>$ci);
     };
     $log->debug("Completion died: $@") if $@;
@@ -443,48 +451,15 @@ $SPEC{complete_cli_arg} = {
     summary => 'Complete command-line argument using Rinci function metadata',
     description => <<'_',
 
-Assuming that command-line like:
-
-    foo a b c
-
-is executing some function, and the command-line arguments will be parsed using
-`Perinci::Sub::GetArgs::Argv`, then try to complete command-line arguments using
-information from Rinci metadata.
-
-Algorithm:
-
-1. If word begins with `$`, we complete from environment variables and are done.
-
-2. Call `get_args_from_argv()` to extract hash arguments from the given `words`.
-
-3. Determine whether we need to complete argument name (e.g. `--arg<tab>`) or
-argument value (e.g. `--arg1 <tab>` or `<tab>` at 1st word where there is an
-argument specified at pos=0) or an element for an array argument (e.g. `a <tab>`
-where there is an argument with spec pos=0 and greedy=1, which means we are
-trying to complete the value of the second element (index=1) of that argument).
-
-4. Call `custom_completer` if defined. If a list of words is returned, we're
-done. This can be used for, e.g. nested function call, e.g.:
-
-    somecmd --opt-for-cmd ... subcmd --opt-for-subcmd ...
-
-5a. If we are completing argument name, then supply a list of possible argument
-names, or fallback to completing filenames.
-
-5b. If we are completing argument value, first check if `custom_arg_completer`
-is defined. If yes, call that routine. If a list of words is returned, we're
-done. Fallback to completing argument values from information in Rinci metadata
-(using `complete_arg_val()` function).
-
-5c. If we are completing value for an element, first check if
-`custom_arg_element_completer` is defined. If yes, call that routine. If a list
-of words is returned, we're done. Fallback to completing argument values from
-information in Rinci metadata (using `complete_arg_val()` function).
+This routine uses `Perinci::Sub::GetArgs::Argv` to generate `Getopt::Long`
+specification from arguments list in Rinci function metadata and common options.
+Then, it will use `Complete::Getopt::Long` to complete option names, option
+values, as well as arguments.
 
 _
     args => {
         meta => {
-            summary => 'Rinci function metadata, must be normalized',
+            summary => 'Rinci function metadata',
             schema => 'hash*',
             req => 1,
         },
@@ -498,83 +473,28 @@ _
             schema => 'int*',
             req => 1,
         },
-        custom_completer => {
+        completion => {
             summary => 'Supply custom completion routine',
             description => <<'_',
 
 If supplied, instead of the default completion routine, this code will be called
-instead. Refer to function description to see when this routine is called.
+instead. Will receive all arguments that `Complete::Getopt::Long` will pass, and
+additionally:
 
-Code will be called with a hash argument, with these keys: `which` (a string
-with value `name` or `value` depending on whether we should complete argument
-name or value), `words` (an array, the command line split into words), `cword`
-(int, position of word in `words`), `word` (the word to be completed),
-`parent_args` (hash, arguments given to `complete_cli_arg()`), `args` (hash,
-parsed function arguments from `words`) `remaining_words` (array, slice of
-`words` after `cword`), `meta` (the Rinci function metadata).
-
-Code should return an arrayref of completion, or a hashref containing completion
-in `completion` key and other hints in other keys, or `undef` to declare
-declination, on which case completion will resume using the standard builtin
-routine.
-
-A use-case of using this option: XXX.
+* `extras` (hash)
+* `arg` (str)
+* `index` (int, if completing argument element value)
 
 _
             schema => 'code*',
         },
-        custom_arg_completer => {
-            summary => 'Supply custom argument value completion routines',
-            description => <<'_',
-
-Either code or a hash of argument names and codes.
-
-If supplied, instead of the default completion routine, this code will be called
-instead when trying to complete argument value. Refer to function description to
-see when this routine is called.
-
-Code will be called with hash arguments containing these keys: `word` (string,
-the word to be completed), `arg` (string, the argument name that we are
-completing the value of), `args` (hash, the arguments that have been collected
-so far), `parent_args`.
-
-A use-case for using this option: getting argument value from Riap client using
-the `complete_arg_val` action. This allows getting completion from remote
-server.
-
-_
-            schema=>['any*' => {
-                of => [
-                    'code*',
-                    ['hash*'=>{
-                        #values=>'code*', # temp: disabled, not supported yet by Data::Sah
-                    }],
-                ]}],
+        per_arg_json => {
+            summary => 'Will be passed to Perinci::Sub::GetArgs::Argv',
+            schema  => 'bool',
         },
-        custom_arg_element_completer => {
-            summary => 'Supply custom argument element completion routines',
-            description => <<'_',
-
-Either code or a hash of argument names and codes.
-
-If supplied, instead of the default completion routine, this code will be called
-instead when trying to complete argument element. Refer to function description
-to see when this routine is called.
-
-Code will be called with hash arguments containing these keys: `word` (string,
-the word to be completed), `arg` (string, the argument name that we are
-completing the value of), `args` (hash, the arguments that have been collected
-so far), `parent_args`, `idx` (the element index that we are are trying to
-complete, starts from 0).
-
-_
-            schema=>['any*' => {
-                of => [
-                    'code*',
-                    ['hash*'=>{
-                        #values=>'code*', # temp: disabled, not supported yet by Data::Sah
-                    }],
-                ]}],
+        per_arg_yaml => {
+            summary => 'Will be passed to Perinci::Sub::GetArgs::Argv',
+            schema  => 'bool',
         },
         common_opts => {
             summary => 'Common options',
@@ -600,313 +520,188 @@ option specification), `handler` (Getopt::Long handler). Will be passed to
 _
             schema => ['hash*'],
         },
-        extra_completer_args => {
-            summary => 'Arguments to pass to custom completion routines',
-            schema  => 'hash*',
+        extras => {
+            summary => 'A hash that contains extra stuffs',
             description => <<'_',
 
-Completion routines will get this from their `parent_args` argument.
+Usually used to let completion routine get extra stuffs.
 
 _
+            schema  => 'hash',
         },
         %common_args_riap,
     },
     result_naked => 1,
     result => {
         schema => 'hash*',
+        description => <<'_',
+
+You can use `format_completion` function in `Complete::Bash` module to format
+the result of this function for bash.
+
+_
     },
 };
 sub complete_cli_arg {
     require Complete::Getopt::Long;
+    require Perinci::Sub::GetArgs::Argv;
 
-    my %args = @_;
-    my $meta  = $args{meta} or die "Please specify meta";
-    my $words = $args{words} or die "Please specify words";
-    my $cword = $args{cword}; defined($cword) or die "Please specify cword";
+    my %args   = @_;
+    my $meta   = $args{meta} or die "Please specify meta";
+    my $words  = $args{words} or die "Please specify words";
+    my $cword  = $args{cword}; defined($cword) or die "Please specify cword";
+    my $copts  = $args{common_opts} // {};
+    my $comp   = $args{completion};
+    my $extras = $args{extras};
 
-    my $word = $words->[$cword];
-
-    if ($word =~ /^\$/) {
-        $log->tracef("word begins with \$, completing env vars");
-        return {completion=>complete_env(word=>$word), escmode=>'shellvar'};
-    }
-
-    if ((my $v = $meta->{v} // 1.0) != 1.1) {
-        $log->debug("Metadata version is not supported ($v), ".
-                        "only 1.1 is supported");
-        return {completion=>[]};
-    }
+    my $word   = $words->[$cword];
     my $args_p = $meta->{args} // {};
 
-    # first, we stick a unique ID at cword to be able to check whether we should
-    # complete arg name or arg value.
-    my $which = 'name';
-    my $arg;
-    my $index;
-    my $remaining_words = [@$words];
-
-    my $uuid = UUID::Random::generate();
-    my $orig_word = $remaining_words->[$cword];
-    $remaining_words->[$cword] = $uuid;
-    my $gares = Perinci::Sub::GetArgs::Argv::get_args_from_argv(
-        argv        => $remaining_words,
-        meta        => $meta,
-        common_opts => $args{common_opts},
-        strict      => 0,
+    my $genres = Perinci::Sub::GetArgs::Argv::gen_getopt_long_spec_from_meta(
+        meta         => $meta,
+        common_opts  => $copts,
+        per_arg_json => $args{per_arg_json},
+        per_arg_yaml => $args{per_arg_yaml},
     );
-    if ($gares->[0] != 200) {
-        $log->debug("Failed getting args from argv: $gares->[0] - $gares->[1]");
-        return {completion=>[]};
-    }
-    my $genres = $gares->[3]{'func.gen_getopt_long_spec_result'};
-    my $args = $gares->[2];
-  ARG:
-    for my $an (keys %$args) {
-        if (defined($args->{$an})) {
-            if ($args_p->{$an} && $args_p->{$an}{greedy}) {
-                $which = 'element value';
-                $arg = $an;
-                if (ref($args->{$an}) eq 'ARRAY') {
-                    for my $i (0..@{ $args->{$an} }-1) {
-                        if ($args->{$an}[$i] eq $uuid) {
-                            $index = $i;
-                            $args->{$an}[$i] = undef;
-                            last ARG;
-                        }
-                    }
+    die "Can't generate getopt spec from meta: $genres->[0] - $genres->[1]"
+        unless $genres->[0] == 200;
+    my $gospec = $genres->[2];
+    my $specmeta = $genres->[3]{'func.specmeta'};
+
+    my $copts_by_ospec = {};
+    for (keys %$copts) { $copts_by_ospec->{$copts->{$_}{getopt}}=$copts->{$_} }
+
+    my $compgl_comp = sub {
+        my %cargs = @_;
+        my $type  = $cargs{type};
+        my $ospec = $cargs{ospec} // '';
+        my $word  = $cargs{word};
+        my $ci    = $cargs{ci};
+
+        $cargs{extras} = $extras;
+
+        my %rargs = (
+            riap_server_url => $args{riap_server_url},
+            riap_uri        => $args{riap_uri},
+            riap_client     => $args{riap_client},
+        );
+
+        if (my $sm = $specmeta->{$ospec}) {
+            $cargs{type} = 'optval';
+            if ($sm->{arg}) {
+                $log->tracef("completing option value for a known function argument (ospec: %s, arg: %s)", $ospec, $sm->{arg});
+                $cargs{arg} = $sm->{arg};
+                my $as = $args_p->{$sm->{arg}} or return undef;
+                if ($comp) {
+                    $log->tracef("completing with 'completion' routine");
+                    my $res;
+                    eval { $res = $comp->(%cargs) };
+                    $log->debug("completion died: $@") if $@;
+                    return $res if $res;
+                }
+                if ($ospec =~ /\@$/) {
+                    return complete_arg_elem(
+                        meta=>$meta, arg=>$sm->{arg}, word=>$word, index=>$cargs{nth}, # XXX correct index
+                        extras=>$extras, %rargs);
                 } else {
-                    # this is not perfect as whitespaces have been mashed
-                    # together
-                    my @els = split /\s+/, $args->{$an};
-                    for my $i (0..$#els) {
-                        if ($els[$i] eq $uuid) {
-                            $index = $i;
-                            $els[$i] = '';
-                            $args->{$an} = join " ", @els;
-                            last ARG;
-                        }
-                    }
-                }
-            } elsif (ref($args->{$an}) eq 'ARRAY' &&
-                         (my $i = List::MoreUtils::firstidx(sub {$_ eq $uuid},
-                              @{ $args->{$an} }) // -1) >= 0
-                     ) {
-                $arg = $an;
-                $which = 'element value';
-                $index = $i;
-                $args->{$an}[$i] = undef;
-                last;
-            } elsif ($args->{$an} eq $uuid) {
-                $arg = $an;
-                $which = 'value';
-                $args->{$an} = undef;
-                last;
-            }
-        }
-    }
-    # restore original word which we replaced with uuid earlier (we can't simply
-    # use local $remaining_words->[$cword] = $uuid because the $remaining_words
-    # array might already be sliced by get_args_from_argv())
-    for my $i (0..@$remaining_words-1) {
-        if (defined($remaining_words->[$i]) &&
-                $remaining_words->[$i] eq $uuid) {
-            $remaining_words->[$i] = $orig_word;
-        }
-    }
-    # shave undef at the end because it might be formed when doing '--arg1
-    # <tab>' (XXX but why?) if we don't shave it, it will be assumed as '--arg1
-    # undef' and we move on to next arg name, when we should complete arg1's
-    # value.
-    pop @$remaining_words
-        while (@$remaining_words && !defined($remaining_words->[-1]));
-
-    my $opt_before_val;
-    my $opt_before_val_expects_val;
-    if (($which eq 'value' || $which eq 'element value') && $cword > 0) {
-        {
-            last unless $words->[$cword-1] =~ /\A--?([\w-]+)\z/;
-            my $opt = $1; $opt =~ s/-/_/g;
-            # find the corresponding function arg
-            my $an;
-            my $arg_p;
-            for (keys %$args_p) {
-                $arg_p = $args_p->{$_};
-                if ($opt eq $_) {
-                    $an = $_;
-                    last;
-                }
-                if ($arg_p->{cmdline_aliases}{$opt}) {
-                    $an = $_;
-                    last;
-                }
-            }
-            last unless $an;
-            $opt_before_val = $an;
-            last unless $arg_p->{schema};
-            $opt_before_val_expects_val = $arg_p->{schema}[0] ne 'bool';
-        } # block
-    }
-
-    #$log->errorf("remaining_words=%s, args=%s, opt_before_val=%s, opt_before_val_expects_val=%s", $remaining_words, $args, $opt_before_val, $opt_before_val_expects_val);
-    if ($which ne 'name' && $word =~ /^-/ && !$opt_before_val_expects_val) {
-        # user indicates he wants to complete arg name
-        $which = 'name';
-        delete $args->{$arg} if !defined($args->{$arg});
-    } elsif ($which ne 'value' && $word =~ /^--([\w-]+)=(.*)/) {
-        $arg = $1;
-        $word = $words->[$cword] = $2;
-        $which = 'value';
-    }
-    if ($which eq 'name') {
-        $log->tracef("we should complete arg name, word=<%s>", $word);
-    } elsif ($which eq 'value') {
-        $log->tracef("we should complete arg value, arg=<%s>, word=<%s>",
-                 $arg, $word);
-    } elsif ($which eq 'element value') {
-        $log->tracef("we should complete arg element value, ".
-                         "arg=<%s>, index=%s, word=<%s>",
-                     $arg, $index, $word);
-    }
-
-    if ($args{custom_completer}) {
-        $log->tracef("calling 'custom_completer'");
-        # custom_completer can decline by returning undef
-        my $newcword = $cword - (@$words - @$remaining_words);
-        $newcword = 0 if $newcword < 0;
-        my $res = $args{custom_completer}->(
-            which => $which,
-            words => $words,
-            cword => $newcword,
-            word  => $word,
-            index => $index, # for which='element value'
-            args  => $args,
-            parent_args => \%args,
-            meta  => $meta,
-            remaining_words => $remaining_words,
-        );
-        $log->tracef("custom_completer returns %s", $res);
-        # XXX pass type hint from custom_completer
-        return _hashify($res) if $res;
-    }
-
-    if ($which eq 'value') {
-
-        my $cac = $args{custom_arg_completer};
-        if ($cac) {
-            if (ref($cac) eq 'HASH') {
-                if ($cac->{$arg}) {
-                    $log->tracef("calling 'custom_arg_completer'->{%s}", $arg);
-                    my $res = $cac->{$arg}->(
-                        word=>$word, arg=>$arg, args=>$args,
-                        parent_args=>\%args,
-                    );
-                    $log->tracef("custom_arg_completer returns %s", $res);
-                    # XXX pass type hint from routine
-                    return _hashify($res) if $res;
+                    return complete_arg_val(
+                        meta=>$meta, arg=>$sm->{arg}, word=>$word,
+                        extras=>$extras, %rargs);
                 }
             } else {
-                $log->tracef("calling 'custom_arg_completer' (arg=%s)", $arg);
-                my $res = $cac->(
-                    word=>$word, arg=>$arg, args=>$args, parent_args=>\%args);
-                $log->tracef("custom_arg_completer returns %s", $res);
-                # XXX pass type hint from routine
-                return _hashify($res) if $res;
-            }
-        }
-
-        $log->tracef("completing using complete_arg_val()");
-        my $res = complete_arg_val(
-            meta=>$meta, arg=>$arg, word=>$word,
-            args=>$args, parent_args=>\%args,
-            riap_server_url => $args{riap_server_url},
-            riap_uri        => $args{riap_uri},
-            riap_client     => $args{riap_client},
-        );
-        $log->tracef("complete_arg_val() returns %s", $res);
-        # XXX pass type hint from routine
-        return _hashify($res) if $res;
-
-        # fallback to file
-        $log->tracef("completing arg value from file (fallback)");
-        return {completion=>complete_file(word=>$word), escmode=>'filename', path_sep=>'/'};
-
-    } elsif ($which eq 'element value') {
-
-        my $caec = $args{custom_arg_element_completer};
-        if ($caec) {
-            if (ref($caec) eq 'HASH') {
-                if ($caec->{$arg}) {
-                    $log->tracef("calling 'custom_arg_element_completer'->{%s}", $arg);
-                    my $res = $caec->{$arg}->(
-                        word=>$word, arg=>$arg, args=>$args, index=>$index,
-                        parent_args=>\%args,
-                    );
-                    $log->tracef("custom_arg_element_completer returns %s", $res);
-                    # XXX pass type hint from routine
-                    return _hashify($res) if $res;
+                $log->tracef("completing option value for a common option (ospec: %s)", $ospec);
+                $cargs{arg}  = undef;
+                my $codata = $copts_by_ospec->{$ospec};
+                if ($comp) {
+                    $log->tracef("completing with 'completion' routine");
+                    my $res;
+                    eval { $res = $comp->(%cargs) };
+                    $log->debug("completion died: $@") if $@;
+                    return $res if $res;
                 }
-            } else {
-                $log->tracef("calling 'custom_arg_element_completer' (arg=%s)", $arg);
-                my $res = $caec->(
-                    word=>$word, arg=>$arg, args=>$args, index=>$index,
-                    parent_args=>\%args);
-                $log->tracef("custom_arg_element_completer returns %s", $res);
-                # XXX pass type hint from routine
-                return _hashify($res) if $res;
+                if ($codata->{completion}) {
+                    $cargs{arg}  = undef;
+                    $log->tracef("completing with common option's completion");
+                    my $res;
+                    eval { $res = $codata->{completion}->(%cargs) };
+                    $log->debug("completion died: $@") if $@;
+                    return $res if $res;
+                }
+                if ($codata->{schema}) {
+                    require Data::Sah::Normalize;
+                    my $nsch = Data::Sah::Normalize::normalize_schema(
+                        $codata->{schema});
+                    $log->tracef("completing with common option's schema");
+                    return complete_from_schema(
+                        schema => $nsch, word=>$word, ci=>$ci);
+                }
+                return undef;
             }
-        }
+        } elsif ($type eq 'arg') {
+            $log->tracef("completing positional cli argument #%d", $cargs{argpos});
+            $cargs{type} = 'arg';
 
-        $log->tracef("completing using complete_arg_elem()");
-        my $res = complete_arg_elem(
-            meta=>$meta, arg=>$arg, word=>$word, index=>$index,
-            args=>$args, parent_args=>\%args,
-            riap_server_url => $args{riap_server_url},
-            riap_uri        => $args{riap_uri},
-            riap_client     => $args{riap_client},
-        );
-        $log->tracef("complete_arg_elem() returns %s", $res);
-        # XXX pass type hint from routine
-        return _hashify($res) if $res;
+            my $pos = $cargs{argpos}-1;
 
-        # fallback to file
-        $log->tracef("completing arg element value from file (fallback)");
-        return {completion=>complete_file(word=>$word), escmode=>'filename', path_sep=>'/'};
-
-    } elsif ($word eq '' || $word =~ /^--?/) {
-        # which eq 'name'
-
-        # find completable args (the one that has not been mentioned or should
-        # always be mentioned)
-
-        my @words;
-        my $opts_by_common = $genres->[3]{'func.opts_by_common'};
-      CO:
-        for my $k (keys %$opts_by_common) {
-            my $v = $opts_by_common->{$k};
-            for my $i (0..@$words-1) {
-                my $w = $words->[$i];
-                next CO if $i != $cword && defined($w) && $w ~~ @$v;
+            # find if there is a non-greedy argument with the exact position
+            for my $an (keys %$args_p) {
+                my $as = $args_p->{$an};
+                next unless !$as->{greedy} &&
+                    defined($as->{pos}) && $as->{pos} == $pos;
+                $log->tracef("this position is for non-greedy function argument %s", $an);
+                $cargs{arg} = $an;
+                if ($comp) {
+                    $log->tracef("completing with 'completion' routine");
+                    my $res;
+                    eval { $res = $comp->(%cargs) };
+                    $log->debug("completion died: $@") if $@;
+                    return $res if $res;
+                }
+                return complete_arg_val(
+                    meta=>$meta, arg=>$an, word=>$word,
+                    extras=>$extras, %rargs);
             }
-            push @words, @$v;
+
+            # find if there is a greedy argument which takes elements at that
+            # position
+            for my $an (sort {
+                ($args_p->{$b}{pos} // 9999) <=> ($args_p->{$a}{pos} // 9999)
+            } keys %$args_p) {
+                my $as = $args_p->{$an};
+                next unless $as->{greedy} &&
+                    defined($as->{pos}) && $as->{pos} <= $pos;
+                my $index = $pos - $as->{pos};
+                $cargs{arg} = $an;
+                $cargs{index} = $index;
+                $log->tracef("this position is for greedy function argument %s's element[%d]", $an, $index);
+                if ($comp) {
+                    $log->tracef("completing with 'completion' routine");
+                    my $res;
+                    eval { $res = $comp->(%cargs) };
+                    $log->debug("completion died: $@") if $@;
+                    return $res if $res;
+                }
+                return complete_arg_elem(
+                    meta=>$meta, arg=>$an, word=>$word, index=>$index,
+                    extras=>$extras, %rargs);
+            }
+
+            $log->tracef("there is no matching function argument at this position");
+            return undef;
+        } else {
+            $log->tracef("completing option value for an unknown/ambiguous option, declining ...");
+            # decline because there's nothing in Rinci metadata that can aid us
+            return undef;
         }
-        my $opts_by_arg = $genres->[3]{'func.opts_by_arg'};
-      ARG:
-        for my $arg (keys %$args_p) {
-            my $as = $args_p->{$arg};
-            next if exists($args->{$arg}) && (!$as || !$as->{greedy});
-            push @words, @{ $opts_by_arg->{$arg} };
-        }
+    };
 
-        $log->tracef("completing from option names %s", \@words);
-        return {completion=>complete_array_elem(word=>$word, array=>\@words),
-                escmode=>'option'};
-
-    } else {
-
-        # fallback
-        return {completion=>complete_file(word=>$word), escmode=>'filename', path_sep=>'/'};
-
-    }
+    Complete::Getopt::Long::complete_cli_arg(
+        getopt_spec => $gospec,
+        words       => $words,
+        cword       => $cword,
+        completion  => $compgl_comp,
+        extras      => $extras,
+    );
 }
 
 1;
@@ -922,30 +717,11 @@ this module.
 
 =head1 DESCRIPTION
 
-This module provides functionality for doing shell completion. It is meant to be
-used by L<Perinci::CmdLine> and other L<Rinci>/L<Riap>-based CLI shell like
-L<App::riap>.
-
-
-=head1 BUGS/LIMITATIONS/TODOS
-
-=head2 Completing C<--foo=X> not yet supported
-
-=head2 Unclosed quoted
-
-Due to parsing limitation (invokes subshell), can't complete unclosed quotes,
-e.g.
-
- foo "bar <tab>
-
-while shell function can complete this because they are provided C<COMP_WORDS>
-and C<COMP_CWORD> by bash.
-
 
 =head1 SEE ALSO
 
-L<Complete>
+L<Complete>, L<Complete::Getopt::Long>
 
-L<Perinci::CmdLine>
+L<Perinci::CmdLine>, L<Perinci::CmdLine::Lite>, L<App::riap>
 
 =cut

@@ -1,5 +1,34 @@
 Revision history for Perinci-Sub-Complete
 
+0.60     2014-07-27 (SHARYANTO) (not yet released)
+
+         - Now uses Complete::Getopt::Long instead of implementing completion
+           logic ourselves. The code is now much shorter and completion is now
+           more proper, fixing some deficiencies, e.g. inability to expect
+           option value for common option (like '--format=s' used by
+           Perinci::CmdLine).
+
+         [REMOVED FEATURES]
+
+         - To simplify code, remove argument 'custom_arg_completer' and
+           'custom_arg_element_completer', because 'custom_completer' (now
+           'completion') can assume the task.
+
+         - To be more generic, rename argument 'extra_completer_args' to
+           'extras'.
+
+         [INCOMPATIBLE CHANGES]
+
+         - To be more consistent with naming of completion routine in other
+           modules, rename argument from 'custom_completer' to 'completion'. It
+           must only be a coderef instead of coderef or hash of coderefs. Some
+           of the arguments it receives also change.
+
+         - To simplify code, no longer does parse_cmdline() when 'words' and
+           'cword' is not defined. Instead, now the args are required and you
+           need to parse cmdline yourself.
+
+
 0.59     2014-07-25 (SHARYANTO)
 
          - No functional changes.
