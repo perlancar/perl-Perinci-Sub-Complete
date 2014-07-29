@@ -259,6 +259,7 @@ sub complete_arg_val {
         $log->tracef("arg is not supplied, declining");
         return undef;
     };
+    $log->tracef("completing argument value for arg %s", $arg);
     my $ci   = $args{ci} // 0;
     my $word = $args{word} // '';
 
@@ -357,6 +358,7 @@ sub complete_arg_elem {
         $log->tracef("index is not supplied, declining");
         return undef;
     };
+    $log->tracef("completing argument element %s[%d]", $arg, $index);
     my $ci   = $args{ci} // 0;
     my $word = $args{word} // '';
 
@@ -572,6 +574,7 @@ sub complete_cli_arg {
     for (keys %$copts) { $copts_by_ospec->{$copts->{$_}{getopt}}=$copts->{$_} }
 
     my $compgl_comp = sub {
+        $log->tracef("completing cli arg with rinci metadata");
         my %cargs = @_;
         my $type  = $cargs{type};
         my $ospec = $cargs{ospec} // '';
@@ -641,7 +644,7 @@ sub complete_cli_arg {
             $log->tracef("completing positional cli argument #%d", $cargs{argpos});
             $cargs{type} = 'arg';
 
-            my $pos = $cargs{argpos}-1;
+            my $pos = $cargs{argpos};
 
             # find if there is a non-greedy argument with the exact position
             for my $an (keys %$args_p) {
@@ -687,6 +690,13 @@ sub complete_cli_arg {
             }
 
             $log->tracef("there is no matching function argument at this position");
+            if ($comp) {
+                $log->tracef("completing with 'completion' routine");
+                my $res;
+                eval { $res = $comp->(%cargs) };
+                $log->debug("completion died: $@") if $@;
+                return $res if $res;
+            }
             return undef;
         } else {
             $log->tracef("completing option value for an unknown/ambiguous option, declining ...");
