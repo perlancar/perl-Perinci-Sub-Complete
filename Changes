@@ -1,5 +1,11 @@
 Revision history for Perinci-Sub-Complete
 
+0.61     2014-08-06 (SHARYANTO)
+
+         - Provide 'words', 'cword', 'args' in 'extras' passed to completion
+           routines.
+
+
 0.60     2014-07-27 (SHARYANTO)
 
          - Now uses Complete::Getopt::Long instead of implementing completion
