@@ -580,7 +580,6 @@ sub complete_cli_arg {
         my $gares = Perinci::Sub::GetArgs::Argv::get_args_from_argv(
             argv => [@$words],
             meta => $meta,
-            _genres => $genres,
         );
         $extras->{args} = $gares->[2] if $gares->[0] == 200;
     }
