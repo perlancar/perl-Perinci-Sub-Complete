@@ -554,7 +554,11 @@ sub complete_cli_arg {
     my $cword  = $args{cword}; defined($cword) or die "Please specify cword";
     my $copts  = $args{common_opts} // {};
     my $comp   = $args{completion};
-    my $extras = $args{extras};
+    my $extras = {
+        words => $args{words},
+        cword => $args{cword},
+        %{ $args{extras} // {} },
+    };
 
     my $word   = $words->[$cword];
     my $args_p = $meta->{args} // {};
