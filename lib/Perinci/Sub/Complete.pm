@@ -574,6 +574,17 @@ sub complete_cli_arg {
     my $gospec = $genres->[2];
     my $specmeta = $genres->[3]{'func.specmeta'};
 
+    # provide completion routine with 'args' hash parsed from words, put it in
+    # 'extras'
+    {
+        my $gares = Perinci::Sub::GetArgs::Argv::get_args_from_argv(
+            argv => [@$words],
+            meta => $meta,
+            _genres => $genres,
+        );
+        $extras->{args} = $gares->[2] if $gares->[0] == 200;
+    }
+
     my $copts_by_ospec = {};
     for (keys %$copts) { $copts_by_ospec->{$copts->{$_}{getopt}}=$copts->{$_} }
 
