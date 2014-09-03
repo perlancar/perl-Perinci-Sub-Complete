@@ -568,6 +568,7 @@ sub complete_cli_arg {
         common_opts  => $copts,
         per_arg_json => $args{per_arg_json},
         per_arg_yaml => $args{per_arg_yaml},
+        ignore_converted_code => 1,
     );
     die "Can't generate getopt spec from meta: $genres->[0] - $genres->[1]"
         unless $genres->[0] == 200;
