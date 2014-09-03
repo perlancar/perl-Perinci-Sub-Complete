@@ -1,5 +1,11 @@
 Revision history for Perinci-Sub-Complete
 
+0.63     2014-09-03 (PERLANCAR)
+
+         - Use ignore_converted_code option to keep tab completion working when
+           there is coderef cmdline_aliases property.
+
+
 0.62     2014-08-06 (SHARYANTO)
 
          - [Bugfix] When producing 'args' by calling get_args_from_argv(),
