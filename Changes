@@ -1,5 +1,11 @@
 Revision history for Perinci-Sub-Complete
 
+0.64    2014-11-28 (PERLANCAR)
+
+	- Adjust to Complete 0.04 (in hash form, words are now put in
+	  'words' instead of 'completion').
+
+
 0.63     2014-09-03 (PERLANCAR)
 
          - Use ignore_converted_code option to keep tab completion working when
