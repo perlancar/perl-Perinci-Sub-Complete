@@ -445,7 +445,7 @@ sub complete_arg_elem {
 
 sub _hashify {
     return $_[0] if ref($_[0]) eq 'HASH';
-    {completion=>$_[0]};
+    {words=>$_[0]};
 }
 
 $SPEC{complete_cli_arg} = {
