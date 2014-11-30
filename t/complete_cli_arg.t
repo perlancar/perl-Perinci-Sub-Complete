@@ -37,7 +37,7 @@ test_complete(
     name        => 'arg name 2 (dash)',
     args        => {meta=>$meta},
     comp_line0  => 'CMD -^',
-    result      => {completion=>
+    result      => {words=>
                         [qw(--a1 --a2 --a3 --arg0 --f0 --f1 --help --i0 --i1
                             --i2 --s1 --s1b --s2 --s3 -? -h)],
                     escmode=>'option'},
@@ -46,7 +46,7 @@ test_complete(
     name        => 'arg name 3 (sole completion)',
     args        => {meta=>$meta},
     comp_line0  => 'CMD --a1^',
-    result      => {completion=>
+    result      => {words=>
                         [qw(--a1)],
                     escmode=>'option'},
 );
@@ -54,7 +54,7 @@ test_complete(
     name        => 'arg name 3 (unknown option)',
     args        => {meta=>$meta},
     comp_line0  => 'CMD --foo^',
-    result      => {completion=>
+    result      => {words=>
                         [qw()],
                     escmode=>'option'},
 );
