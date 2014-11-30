@@ -1,5 +1,12 @@
 Revision history for Perinci-Sub-Complete
 
+0.65    2014-11-30 (PERLANCAR)
+
+	- No functional changes.
+
+        - Forgot to adjust some tests [CT], [RT#100605].
+
+
 0.64    2014-11-28 (PERLANCAR)
 
 	- Adjust to Complete 0.04 (in hash form, words are now put in
