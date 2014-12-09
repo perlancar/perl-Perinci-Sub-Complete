@@ -63,13 +63,13 @@ test_complete(
     name        => 'arg value (schema)',
     args        => {meta=>$meta},
     comp_line0  => 'CMD --s1 ap^',
-    result      => [qw(apple apricot)],
+    result      => {words=>[qw(apple apricot)], static=>1},
 );
 test_complete(
     name        => 'arg value (spec "completion")',
     args        => {meta=>$meta},
     comp_line0  => 'CMD --s2 a^',
-    result      => ["aa".."az"],
+    result      => {words=>["aa".."az"], static=>0},
 );
 test_complete(
     name        => 'arg value, pos',

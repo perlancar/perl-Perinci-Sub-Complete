@@ -9,7 +9,7 @@ use warnings;
 use experimental 'smartmatch';
 use Log::Any '$log';
 
-use Complete::Util qw(complete_array_elem);
+use Complete::Util qw(hashify_answer complete_array_elem);
 use Perinci::Sub::Util qw(gen_modified_sub);
 
 require Exporter;
@@ -93,21 +93,25 @@ sub complete_from_schema {
 
     my ($type, $cs) = @{$sch};
 
+    my $static;
     my $words;
     eval {
         if ($cs->{is} && !ref($cs->{is})) {
             $log->tracef("adding completion from 'is' clause");
             push @$words, $cs->{is};
+            $static++;
             return; # from eval. there should not be any other value
         }
         if ($cs->{in}) {
             $log->tracef("adding completion from 'in' clause");
             push @$words, grep {!ref($_)} @{ $cs->{in} };
+            $static++;
             return; # from eval. there should not be any other value
         }
         if ($type =~ /\Abool\*?\z/) {
             $log->tracef("adding completion from possible values of bool");
             push @$words, 0, 1;
+            $static++;
             return; # from eval
         }
         if ($type =~ /\Aint\*?\z/) {
@@ -116,26 +120,32 @@ sub complete_from_schema {
                     $cs->{between}[0] - $cs->{between}[0] <= $limit) {
                 $log->tracef("adding completion from 'between' clause");
                 push @$words, $cs->{between}[0] .. $cs->{between}[1];
+                $static++;
             } elsif ($cs->{xbetween} &&
                          $cs->{xbetween}[0] - $cs->{xbetween}[0] <= $limit) {
                 $log->tracef("adding completion from 'xbetween' clause");
                 push @$words, $cs->{xbetween}[0]+1 .. $cs->{xbetween}[1]-1;
+                $static++;
             } elsif (defined($cs->{min}) && defined($cs->{max}) &&
                          $cs->{max}-$cs->{min} <= $limit) {
                 $log->tracef("adding completion from 'min' & 'max' clauses");
                 push @$words, $cs->{min} .. $cs->{max};
+                $static++;
             } elsif (defined($cs->{min}) && defined($cs->{xmax}) &&
                          $cs->{xmax}-$cs->{min} <= $limit) {
                 $log->tracef("adding completion from 'min' & 'xmax' clauses");
                 push @$words, $cs->{min} .. $cs->{xmax}-1;
+                $static++;
             } elsif (defined($cs->{xmin}) && defined($cs->{max}) &&
                          $cs->{max}-$cs->{xmin} <= $limit) {
                 $log->tracef("adding completion from 'xmin' & 'max' clauses");
                 push @$words, $cs->{xmin}+1 .. $cs->{max};
+                $static++;
             } elsif (defined($cs->{xmin}) && defined($cs->{xmax}) &&
                          $cs->{xmax}-$cs->{xmin} <= $limit) {
                 $log->tracef("adding completion from 'xmin' & 'xmax' clauses");
                 push @$words, $cs->{xmin}+1 .. $cs->{xmax}-1;
+                $static++;
             } elsif (length($word) && $word !~ /\A-?\d*\z/) {
                 $log->tracef("word not an int");
                 $words = [];
@@ -199,7 +209,10 @@ sub complete_from_schema {
     }; # eval
 
     return undef unless $words;
-    complete_array_elem(array=>$words, word=>$word, ci=>$ci);
+    hashify_answer(
+        complete_array_elem(array=>$words, word=>$word, ci=>$ci),
+        {static=>$static // 0},
+    );
 }
 
 $SPEC{complete_arg_val} = {
@@ -272,6 +285,7 @@ sub complete_arg_val {
     };
 
     my $reply;
+    my $static;
     eval { # completion sub can die, etc.
 
         my $comp = $arg_p->{completion};
@@ -285,6 +299,7 @@ sub complete_arg_val {
             } elsif (ref($comp) eq 'ARRAY') {
                 $reply = complete_array_elem(
                     array=>$comp, word=>$word, ci=>$ci);
+                $static = $word eq '';
                 return; # from eval
             }
 
@@ -325,6 +340,8 @@ sub complete_arg_val {
         return undef;
     }
 
+    $reply = hashify_answer($reply);
+    $reply->{static} //= $static // 0;
     $reply;
 }
 
@@ -371,6 +388,7 @@ sub complete_arg_elem {
     };
 
     my $reply;
+    my $static;
     eval { # completion sub can die, etc.
 
         my $elcomp = $arg_p->{element_completion};
@@ -384,6 +402,7 @@ sub complete_arg_elem {
             } elsif (ref($elcomp) eq 'ARRAY') {
                 $reply = complete_array_elem(
                     array=>$elcomp, word=>$word, ci=>$ci);
+                $static = $word eq '';
             }
 
             $log->tracef("arg spec's element_completion is not a coderef or ".
@@ -440,12 +459,9 @@ sub complete_arg_elem {
         return undef;
     }
 
+    $reply = hashify_answer($reply);
+    $reply->{static} //= $static;
     $reply;
-}
-
-sub _hashify {
-    return $_[0] if ref($_[0]) eq 'HASH';
-    {words=>$_[0]};
 }
 
 $SPEC{complete_cli_arg} = {
