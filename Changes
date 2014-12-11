@@ -1,5 +1,10 @@
 Revision history for Perinci-Sub-Complete
 
+0.67    2014-12-11 (PERLANCAR)
+
+	- [Bugfix] static should be 0 when word length is not zero.
+
+
 0.66    2014-12-09 (PERLANCAR)
 
 	- Return 'static' key in completion answer (see Complete 0.05 for
