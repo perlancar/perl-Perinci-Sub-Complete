@@ -211,7 +211,7 @@ sub complete_from_schema {
     return undef unless $words;
     hashify_answer(
         complete_array_elem(array=>$words, word=>$word, ci=>$ci),
-        {static=>$static // 0},
+        {static=>$static && $word eq '' ? 1:0},
     );
 }
 
@@ -299,7 +299,7 @@ sub complete_arg_val {
             } elsif (ref($comp) eq 'ARRAY') {
                 $reply = complete_array_elem(
                     array=>$comp, word=>$word, ci=>$ci);
-                $static = $word eq '';
+                $static++;
                 return; # from eval
             }
 
@@ -341,7 +341,7 @@ sub complete_arg_val {
     }
 
     $reply = hashify_answer($reply);
-    $reply->{static} //= $static // 0;
+    $reply->{static} //= $static && $word eq '' ? 1:0;
     $reply;
 }
 

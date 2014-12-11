@@ -62,8 +62,14 @@ test_complete(
 test_complete(
     name        => 'arg value (schema)',
     args        => {meta=>$meta},
+    comp_line0  => 'CMD --s1 ^',
+    result      => {words=>['apple','apricot','banana','grape','grapefruit','green grape','red date','red grape'], static=>1},
+);
+test_complete(
+    name        => 'arg value (schema) #2',
+    args        => {meta=>$meta},
     comp_line0  => 'CMD --s1 ap^',
-    result      => {words=>[qw(apple apricot)], static=>1},
+    result      => {words=>[qw(apple apricot)], static=>0}, # static is 0 here because word is not zero-length
 );
 test_complete(
     name        => 'arg value (spec "completion")',
