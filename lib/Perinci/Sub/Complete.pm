@@ -22,6 +22,11 @@ our @EXPORT_OK = qw(
                );
 our %SPEC;
 
+$SPEC{':package'} = {
+    v => 1.1,
+    summary => 'Complete command-line argument using Rinci metadata',
+};
+
 my %common_args_riap = (
     riap_client => {
         summary => 'Optional, to perform complete_arg_val to the server',
@@ -747,7 +752,7 @@ sub complete_cli_arg {
 }
 
 1;
-# ABSTRACT: Complete command-line argument using Rinci metadata
+# ABSTRACT:
 
 =for Pod::Coverage ^(.+)$
 
