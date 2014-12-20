@@ -465,7 +465,7 @@ sub complete_arg_elem {
     }
 
     $reply = hashify_answer($reply);
-    $reply->{static} //= $static;
+    $reply->{static} //= $static && $word eq '' ? 1:0;
     $reply;
 }
 
