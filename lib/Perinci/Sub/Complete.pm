@@ -226,8 +226,26 @@ $SPEC{complete_arg_val} = {
     description => <<'_',
 
 Will attempt to complete using the completion routine specified in the argument
-specification, or if that is not specified, from argument's schema using
-`complete_from_schema`.
+specification (the `completion` property, or in the case of `complete_arg_elem`
+function, the `element_completion` property), or if that is not specified, from
+argument's schema using `complete_from_schema`.
+
+Completion routine will get `%args`, with the following keys:
+
+* `word` (str, the word to be completed)
+* `ci` (bool, whether string matching should be case-insensitive)
+* `arg` (str, the argument name which value is currently being completed)
+* `index (int, only for the `complete_arg_elem` function, the index in the
+   argument array that is currently being completed, starts from 0)
+* `args` (hash, the argument hash to the function, so far)
+
+as well as extra keys from `extras` (but these won't overwrite the above
+standard keys).
+
+Completion routine should return a completion answer structure (described in
+`Complete`) which is either a hash or an array. The simplest form of answer is
+just to return an array of strings. Completion routine can also return undef to
+express declination.
 
 _
     args => {
@@ -255,8 +273,15 @@ _
             schema  => 'hash',
         },
         extras => {
-            summary => 'To pass extra arguments to completion routines',
+            summary => 'Add extra arguments to completion routine',
             schema  => 'hash',
+            description => <<'_',
+
+The keys from this `extras` hash will be merged into the final `%args` passed to
+completion routines. Note that standard keys like `word`, `cword`, `ci`, and so
+on as described in the function description will not be overwritten by this.
+
+_
         },
 
         %common_args_riap,
@@ -268,6 +293,8 @@ _
 };
 sub complete_arg_val {
     my %args = @_;
+
+    my $extras = $args{extras} // {};
 
     my $meta = $args{meta} or do {
         $log->tracef("meta is not supplied, declining");
@@ -298,8 +325,8 @@ sub complete_arg_val {
             $log->tracef("calling arg spec's completion");
             if (ref($comp) eq 'CODE') {
                 $reply = $comp->(
-                    word=>$word, ci=>$ci, args=>$args{args},
-                    extras=>$args{extras});
+                    %$extras,
+                    word=>$word, ci=>$ci, arg=>$arg, args=>$args{args});
                 return; # from eval
             } elsif (ref($comp) eq 'ARRAY') {
                 $reply = complete_array_elem(
@@ -368,6 +395,8 @@ sub complete_arg_elem {
 
     my %args = @_;
 
+    my $extras = $args{extras} // {};
+
     my $meta = $args{meta} or do {
         $log->tracef("meta is not supplied, declining");
         return undef;
@@ -401,8 +430,8 @@ sub complete_arg_elem {
             $log->tracef("calling arg spec's element_completion [$index]");
             if (ref($elcomp) eq 'CODE') {
                 $reply = $elcomp->(
-                    word=>$word, ci=>$ci, index=>$index,
-                    args=>$args{args}, extras=>$args{extras});
+                    %$extras,
+                    word=>$word, ci=>$ci, index=>$index, args=>$args{args});
                 return; # from eval
             } elsif (ref($elcomp) eq 'ARRAY') {
                 $reply = complete_array_elem(
@@ -544,13 +573,15 @@ _
             schema => ['hash*'],
         },
         extras => {
-            summary => 'A hash that contains extra stuffs',
+            summary => 'Add extra arguments to completion routine',
+            schema  => 'hash',
             description => <<'_',
 
-Usually used to let completion routine get extra stuffs.
+The keys from this `extras` hash will be merged into the final `%args` passed to
+completion routines. Note that standard keys like `word`, `cword`, `ci`, and so
+on as described in the function description will not be overwritten by this.
 
 _
-            schema  => 'hash',
         },
         %common_args_riap,
     },
@@ -576,9 +607,9 @@ sub complete_cli_arg {
     my $copts  = $args{common_opts} // {};
     my $comp   = $args{completion};
     my $extras = {
+        %{ $args{extras} // {} },
         words => $args{words},
         cword => $args{cword},
-        %{ $args{extras} // {} },
     };
 
     my $word   = $words->[$cword];
@@ -617,8 +648,6 @@ sub complete_cli_arg {
         my $ospec = $cargs{ospec} // '';
         my $word  = $cargs{word};
         my $ci    = $cargs{ci};
-
-        $cargs{extras} = $extras;
 
         my %rargs = (
             riap_server_url => $args{riap_server_url},

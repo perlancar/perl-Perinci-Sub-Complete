@@ -135,6 +135,52 @@ test_complete(
     result      => [qw/a/],
 );
 
+subtest "extras argument" => sub {
+    {
+        local $meta->{args}{i1}{completion} = sub {
+            my %args = @_;
+            [$args{bar}, $args{foo}];
+        };
+        test_complete(
+            name        => 'in arg completion property',
+            args        => {
+                meta => $meta,
+                extras => {foo=>10, bar=>20},
+            },
+            comp_line0  => 'CMD --i1 ^',
+            result      => {static=>0, words=>[20, 10]},
+        );
+    }
+    {
+        local $meta->{args}{a1}{element_completion} = sub {
+            my %args = @_;
+            [$args{bar}, $args{foo}];
+        };
+        test_complete(
+            name        => 'in arg element_completion property',
+            args        => {
+                meta => $meta,
+                extras => {foo=>10, bar=>20},
+            },
+            comp_line0  => 'CMD --a1 ^',
+            result      => {static=>0, words=>[20, 10]},
+        );
+    }
+    test_complete(
+        name        => 'in custom completion',
+        args        => {
+            meta => $meta,
+            completion => sub {
+                my %args = @_;
+                [$args{bar}, $args{foo}];
+            },
+            extras => {foo=>10, bar=>20},
+        },
+        comp_line0  => 'CMD x y^',
+        result      => [qw/10 20/],
+    );
+};
+
 DONE_TESTING:
 done_testing;
 
