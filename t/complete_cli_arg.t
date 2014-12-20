@@ -135,35 +135,38 @@ test_complete(
     result      => [qw/a/],
 );
 
-subtest "extras argument" => sub {
+subtest "args passed to completion routine" => sub {
     {
         local $meta->{args}{i1}{completion} = sub {
             my %args = @_;
-            [$args{bar}, $args{foo}];
+            is($args{foo}, 10);
+            is_deeply($args{args}{i2}, 20);
+            [];
         };
         test_complete(
             name        => 'in arg completion property',
             args        => {
                 meta => $meta,
-                extras => {foo=>10, bar=>20},
+                extras => {foo=>10},
             },
-            comp_line0  => 'CMD --i1 ^',
-            result      => {static=>0, words=>[20, 10]},
+            comp_line0  => 'CMD --i2 20 --i1 ^',
+            result      => {static=>0, words=>[]},
         );
     }
     {
         local $meta->{args}{a1}{element_completion} = sub {
             my %args = @_;
-            [$args{bar}, $args{foo}];
+            is($args{foo}, 10);
+            [];
         };
         test_complete(
             name        => 'in arg element_completion property',
             args        => {
                 meta => $meta,
-                extras => {foo=>10, bar=>20},
+                extras => {foo=>10},
             },
             comp_line0  => 'CMD --a1 ^',
-            result      => {static=>0, words=>[20, 10]},
+            result      => {static=>0, words=>[]},
         );
     }
     test_complete(
@@ -172,12 +175,13 @@ subtest "extras argument" => sub {
             meta => $meta,
             completion => sub {
                 my %args = @_;
-                [$args{bar}, $args{foo}];
+                is($args{foo}, 10);
+                [];
             },
-            extras => {foo=>10, bar=>20},
+            extras => {foo=>10},
         },
         comp_line0  => 'CMD x y^',
-        result      => [qw/10 20/],
+        result => [],
     );
 };
 
