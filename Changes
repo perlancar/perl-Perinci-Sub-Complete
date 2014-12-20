@@ -1,5 +1,10 @@
 Revision history for Perinci-Sub-Complete
 
+0.69    2014-12-20 (PERLANCAR)
+
+	- [Bugfix] 'args' arg for completion routine was not set correctly.
+
+
 0.68    2014-12-20 (PERLANCAR)
 
         [INCOMPATIBLE CHANGES]
