@@ -1,5 +1,15 @@
 Revision history for Perinci-Sub-Complete
 
+0.68    2014-12-20 (PERLANCAR)
+
+        [INCOMPATIBLE CHANGES]
+
+        - Following Complete::Getopt::Long 0.19, to make writing completion
+          routine simpler, we now also merge keys from 'extras' argument into
+          the final %args passed to the completion routine. Previously 'extras'
+          is put into a single key in %args as 'extras'.
+
+
 0.67    2014-12-11 (PERLANCAR)
 
 	- [Bugfix] static should be 0 when word length is not zero.
