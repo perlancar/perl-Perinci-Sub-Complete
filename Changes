@@ -1,5 +1,13 @@
 Revision history for Perinci-Sub-Complete
 
+0.70    2014-12-27 (PERLANCAR)
+
+	- No functional changes.
+
+	- Tweak logging messages to make it easier to debug (preparing
+	  peri-test-comp).
+
+
 0.69    2014-12-20 (PERLANCAR)
 
 	- [Bugfix] 'args' arg for completion routine was not set correctly.
