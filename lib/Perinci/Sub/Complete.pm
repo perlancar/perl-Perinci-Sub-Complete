@@ -602,6 +602,18 @@ on as described in the function description will not be overwritten by this.
 
 _
         },
+        func_arg_starts_at => {
+            schema  => 'int*',
+            default => 0,
+            description => <<'_',
+
+This is a (temporary?) workaround for Perinci::CmdLine. In an application with
+subcommands (e.g. `cmd --verbose subcmd arg0 arg1 ...`), then `words` will still
+contain the subcommand name. Positional function arguments then start at 1 not
+0. This option allows offsetting function arguments.
+
+_
+        },
         %common_args_riap,
     },
     result_naked => 1,
@@ -747,12 +759,13 @@ sub complete_cli_arg {
             $cargs{type} = 'arg';
 
             my $pos = $cargs{argpos};
+            my $fasa = $args{func_arg_starts_at} // 0;
 
             # find if there is a non-greedy argument with the exact position
             for my $an (keys %$args_p) {
                 my $as = $args_p->{$an};
                 next unless !$as->{greedy} &&
-                    defined($as->{pos}) && $as->{pos} == $pos;
+                    defined($as->{pos}) && $as->{pos} == $pos - $fasa;
                 $log->tracef("[comp][periscomp] this argument position is for non-greedy function argument <%s>", $an);
                 $cargs{arg} = $an;
                 if ($comp) {
@@ -778,8 +791,8 @@ sub complete_cli_arg {
             } keys %$args_p) {
                 my $as = $args_p->{$an};
                 next unless $as->{greedy} &&
-                    defined($as->{pos}) && $as->{pos} <= $pos;
-                my $index = $pos - $as->{pos};
+                    defined($as->{pos}) && $as->{pos} <= $pos - $fasa;
+                my $index = $pos - $fasa - $as->{pos};
                 $cargs{arg} = $an;
                 $cargs{index} = $index;
                 $log->tracef("[comp][periscomp] this position is for greedy function argument <%s>'s element[%d]", $an, $index);
