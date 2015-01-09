@@ -412,6 +412,8 @@ sub complete_arg_elem {
 
     my $extras = $args{extras} // {};
 
+    my $ourextras = {arg=>$args{arg}, args=>$args{args}};
+
     my $meta = $args{meta} or do {
         $log->tracef("[comp][periscomp] meta is not supplied, declining");
         goto RETURN_RES;
@@ -439,12 +441,14 @@ sub complete_arg_elem {
     eval { # completion sub can die, etc.
 
         my $elcomp = $arg_p->{element_completion};
+        $ourextras->{index} = $index;
         if ($elcomp) {
             if (ref($elcomp) eq 'CODE') {
                 $log->tracef("[comp][periscomp] invoking routine specified in arg spec's 'element_completion' property");
                 $fres = $elcomp->(
                     %$extras,
-                    word=>$word, ci=>$ci, index=>$index, args=>$args{args});
+                    %$ourextras,
+                    word=>$word, ci=>$ci);
                 return; # from eval
             } elsif (ref($elcomp) eq 'ARRAY') {
                 $log->tracef("[comp][periscomp] using array specified in arg spec's 'element_completion' property: %s", $elcomp);
@@ -548,8 +552,8 @@ If supplied, instead of the default completion routine, this code will be called
 instead. Will receive all arguments that `Complete::Getopt::Long` will pass, and
 additionally:
 
-* `extras` (hash)
-* `arg` (str)
+* `arg` (str, the name of function argument)
+* `args` (hash, the function arguments formed so far)
 * `index` (int, if completing argument element value)
 
 _
