@@ -1,5 +1,11 @@
 Revision history for Perinci-Sub-Complete
 
+0.71    2015-01-09 (PERLANCAR)
+
+	- Add option: func_arg_starts_at which is a workaround for
+	  Perinci::CmdLine.
+
+
 0.70    2014-12-27 (PERLANCAR)
 
 	- No functional changes.
