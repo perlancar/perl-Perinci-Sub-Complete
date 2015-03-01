@@ -364,6 +364,25 @@ sub complete_arg_val {
             return; # from eval
         }
 
+        my $ent = $arg_p->{'x.schema.entity'};
+        if ($ent) {
+            require Module::Path::More;
+            my $mod = "Perinci::Sub::ArgEntity::$ent";
+            if (Module::Path::More::module_path(module=>$mod)) {
+                $log->tracef("[comp][periscomp] loading module %s ...", $mod);
+                my $mod_pm = $mod; $mod_pm =~ s!::!/!g; $mod_pm .= ".pm";
+                require $mod_pm;
+                if (defined &{"$mod\::complete_arg_val"}) {
+                    $log->tracef("[comp][periscomp] invoking complete_arg_val from %s ...", $mod);
+                    my $fref = \&{"$mod\::complete_arg_val"};
+                    $fres = $fref->(
+                        %$extras,
+                        word=>$word, ci=>$ci, arg=>$arg, args=>$args{args});
+                    return; # from eval
+                }
+            }
+        }
+
         my $sch = $arg_p->{schema};
         unless ($sch) {
             $log->tracef("[comp][periscomp] arg spec does not specify schema, declining");
@@ -477,6 +496,25 @@ sub complete_arg_elem {
 
             $log->tracef("[comp][periscomp] declining");
             return; # from eval
+        }
+
+        my $ent = $arg_p->{'x.schema.element_entity'};
+        if ($ent) {
+            require Module::Path::More;
+            my $mod = "Perinci::Sub::ArgEntity::$ent";
+            if (Module::Path::More::module_path(module=>$mod)) {
+                $log->tracef("[comp][periscomp] loading module %s ...", $mod);
+                my $mod_pm = $mod; $mod_pm =~ s!::!/!g; $mod_pm .= ".pm";
+                require $mod_pm;
+                if (defined &{"$mod\::complete_arg_val"}) {
+                    $log->tracef("[comp][periscomp] invoking complete_arg_val from %s ...", $mod);
+                    my $fref = \&{"$mod\::complete_arg_val"};
+                    $fres = $fref->(
+                        %$extras,
+                        word=>$word, ci=>$ci, arg=>$arg, args=>$args{args});
+                    return; # from eval
+                }
+            }
         }
 
         my $sch = $arg_p->{schema};
