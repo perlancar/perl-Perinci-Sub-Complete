@@ -94,7 +94,7 @@ sub complete_from_schema {
     my %args = @_;
     my $sch  = $args{schema}; # must be normalized
     my $word = $args{word} // "";
-    my $ci   = $args{ci};
+    my $ci   = $args{ci} // $Complete::OPT_CI;
 
     my $fres;
     $log->tracef("[comp][periscomp] entering complete_from_schema, word=<%s>, schema=%s", $word, $sch);
@@ -272,7 +272,7 @@ _
         },
         ci => {
             summary => 'Whether to be case-insensitive',
-            schema => ['bool*', default => 0],
+            schema => ['bool*'],
         },
         args => {
             summary => 'Collected arguments so far, '.
@@ -314,7 +314,7 @@ sub complete_arg_val {
         $log->tracef("[comp][periscomp] arg is not supplied, declining");
         goto RETURN_RES;
     };
-    my $ci   = $args{ci} // 0;
+    my $ci   = $args{ci} // $Complete::OPT_CI;
     my $word = $args{word} // '';
 
     # XXX reject if meta's v is not 1.1
@@ -445,7 +445,7 @@ sub complete_arg_elem {
         $log->tracef("[comp][periscomp] index is not supplied, declining");
         goto RETURN_RES;
     };
-    my $ci   = $args{ci} // 0;
+    my $ci   = $args{ci} // $Complete::OPT_CI;
     my $word = $args{word} // '';
 
     # XXX reject if meta's v is not 1.1
@@ -717,7 +717,7 @@ sub complete_cli_arg {
         my $type  = $cargs{type};
         my $ospec = $cargs{ospec} // '';
         my $word  = $cargs{word};
-        my $ci    = $cargs{ci};
+        my $ci    = $cargs{ci} // $Complete::OPT_CI;
 
         my $fres;
 
