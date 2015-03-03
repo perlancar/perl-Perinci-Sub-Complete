@@ -9,6 +9,7 @@ use warnings;
 use experimental 'smartmatch';
 use Log::Any '$log';
 
+use Complete;
 use Complete::Util qw(hashify_answer complete_array_elem);
 use Perinci::Sub::Util qw(gen_modified_sub);
 
