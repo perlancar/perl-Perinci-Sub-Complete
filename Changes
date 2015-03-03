@@ -1,5 +1,12 @@
 Revision history for Perinci-Sub-Complete
 
+0.74    2015-03-03 (PERLANCAR)
+
+	- No functional changes.
+
+	- [Bugfix] Forgot to 'use Complete', d'oh.
+
+
 0.73    2015-03-03 (PERLANCAR)
 
 	- Observe $Complete::OPT_CI as default for 'ci' options.
