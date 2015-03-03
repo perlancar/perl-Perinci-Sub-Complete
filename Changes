@@ -1,5 +1,10 @@
 Revision history for Perinci-Sub-Complete
 
+0.73    2015-03-03 (PERLANCAR)
+
+	- Observe $Complete::OPT_CI as default for 'ci' options.
+
+
 0.72    2015-03-01 (PERLANCAR)
 
 	- Use completion routine from Perinci::Sub::ArgEntity::* modules.
