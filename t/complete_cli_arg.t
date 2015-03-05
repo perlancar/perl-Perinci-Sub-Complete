@@ -40,7 +40,7 @@ test_complete(
     result      => {words=>
                         [qw(--a1 --a2 --a3 --arg0 --f0 --f1 --help --i0 --i1
                             --i2 --s1 --s1b --s2 --s3 -? -h)],
-                    escmode=>'option'},
+                    esc_mode=>'option'},
 );
 test_complete(
     name        => 'arg name 3 (sole completion)',
@@ -48,7 +48,7 @@ test_complete(
     comp_line0  => 'CMD --a1^',
     result      => {words=>
                         [qw(--a1)],
-                    escmode=>'option'},
+                    esc_mode=>'option'},
 );
 test_complete(
     name        => 'arg name 3 (unknown option)',
@@ -56,7 +56,7 @@ test_complete(
     comp_line0  => 'CMD --foo^',
     result      => {words=>
                         [qw()],
-                    escmode=>'option'},
+                    esc_mode=>'option'},
 );
 
 test_complete(
