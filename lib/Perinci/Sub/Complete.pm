@@ -10,7 +10,7 @@ use experimental 'smartmatch';
 use Log::Any '$log';
 
 use Complete;
-use Complete::Util qw(hashify_answer complete_array_elem);
+use Complete::Util qw(hashify_answer complete_array_elem combine_answers);
 use Perinci::Sub::Util qw(gen_modified_sub);
 
 require Exporter;
@@ -117,13 +117,13 @@ sub complete_from_schema {
             $static++;
             return; # from eval. there should not be any other value
         }
-        if ($type =~ /\Abool\*?\z/) {
+        if ($type eq 'bool') {
             $log->tracef("[comp][periscomp] adding completion from possible values of bool");
             push @$words, 0, 1;
             $static++;
             return; # from eval
         }
-        if ($type =~ /\Aint\*?\z/) {
+        if ($type eq 'int') {
             my $limit = 100;
             if ($cs->{between} &&
                     $cs->{between}[0] - $cs->{between}[0] <= $limit) {
@@ -185,7 +185,7 @@ sub complete_from_schema {
             }
             return; # from eval
         }
-        if ($type =~ /\Afloat\*?\z/) {
+        if ($type eq 'float') {
             if (length($word) && $word !~ /\A-?\d*(\.\d*)?\z/) {
                 $log->tracef("[comp][periscomp] word not a float");
                 $words = [];

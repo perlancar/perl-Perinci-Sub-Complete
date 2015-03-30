@@ -5,13 +5,26 @@ use strict;
 use warnings;
 
 use Perinci::Sub::Complete qw(complete_from_schema);
-#use Perinci::Sub::Normalize qw(normalize_function_metadata);
-#use Data::Sah qw(normalize_schema);
+use Test::Exception;
 use Test::More 0.98;
 
-# XXX in clause (btw, already tested in complete_cli_arg.t)
 # XXX bool 0/1
-# XXX is clause
+
+subtest "schema must be normalized" => sub {
+    dies_ok { complete_from_schema(schema=>'int', word=>'') };
+};
+
+subtest "is clause" => sub {
+    is_deeply(complete_from_schema(schema=>[foo => {is=>"x"}, {}], word=>''),
+              {words=>[sort qw/x/], static=>1});
+    is_deeply(complete_from_schema(schema=>[foo => {is=>["x"]}, {}], word=>''), undef);
+};
+
+subtest "in clause" => sub {
+    my $sch = [foo => {in=>[qw/bar baz/]}, {}];
+    is_deeply(complete_from_schema(schema=>$sch, word=>''),
+              {words=>[sort qw/bar baz/], static=>1});
+};
 
 subtest int => sub {
     subtest "min/max below limit" => sub {
