@@ -117,6 +117,23 @@ sub complete_from_schema {
             $static++;
             return; # from eval. there should not be any other value
         }
+        if ($type eq 'any') {
+            # because currently Data::Sah::Normalize doesn't recursively
+            # normalize schemas in 'of' clauses, etc.
+            require Data::Sah::Normalize;
+            if ($cs->{of} && @{ $cs->{of} }) {
+                $fres = combine_answers(
+                    grep { defined } map {
+                        complete_from_schema(
+                            schema=>Data::Sah::Normalize::normalize_schema($_),
+                            word => $word,
+                            ci => $ci,
+                        )
+                    } @{ $cs->{of} }
+                );
+                goto RETURN_RES; # directly return result
+            }
+        }
         if ($type eq 'bool') {
             $log->tracef("[comp][periscomp] adding completion from possible values of bool");
             push @$words, 0, 1;
@@ -216,6 +233,8 @@ sub complete_from_schema {
             return; # from eval
         }
     }; # eval
+
+    $log->tracef("[periscomp] complete_from_schema died: %s", $@) if $@;
 
     goto RETURN_RES unless $words;
     $fres = hashify_answer(

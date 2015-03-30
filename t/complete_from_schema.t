@@ -138,5 +138,17 @@ subtest float => sub {
     # XXX digit-by-digit, with xmin, xmax, between, xbetween
 };
 
+subtest any => sub {
+    my $sch;
+
+    $sch = [any => {of => [ [str => in=>["1a"]], [int => min=>-2, max=>7] ]}];
+    is_deeply(complete_from_schema(schema=>$sch, word=>''),
+              {words=>[qw/1a -1 -2 0 1 2 3 4 5 6 7/], static=>1});
+
+    $sch = [any => {of => [ [str => in=>["1a"]], ["code"] ]}];
+    is_deeply(complete_from_schema(schema=>$sch, word=>''),
+              {words=>[qw/1a/], static=>1});
+};
+
 DONE_TESTING:
 done_testing;
