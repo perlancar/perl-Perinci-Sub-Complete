@@ -1,5 +1,11 @@
 Revision history for Perinci-Sub-Complete
 
+0.76    2015-03-30 (PERLANCAR)
+
+	- complete_from_schema(): Handle 'any' type by combining answers
+	  from all of its alternate types.
+
+
 0.75    2015-03-09 (PERLANCAR)
 
 	- Adjust to Complete::Getopt::Long 0.30 (escmode renamed to
