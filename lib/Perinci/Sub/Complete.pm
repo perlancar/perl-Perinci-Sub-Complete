@@ -339,8 +339,8 @@ sub complete_arg_val {
 
     # XXX reject if meta's v is not 1.1
 
-    my $args_p = $meta->{args} // {};
-    my $arg_p = $args_p->{$arg} or do {
+    my $args_prop = $meta->{args} // {};
+    my $arg_spec = $args_prop->{$arg} or do {
         $log->tracef("[comp][periscomp] arg '$arg' is not specified in meta, declining");
         goto RETURN_RES;
     };
@@ -348,7 +348,7 @@ sub complete_arg_val {
     my $static;
     eval { # completion sub can die, etc.
 
-        my $comp = $arg_p->{completion};
+        my $comp = $arg_spec->{completion};
         if ($comp) {
             if (ref($comp) eq 'CODE') {
                 $log->tracef("[comp][periscomp] invoking routine specified in arg spec's 'completion' property");
@@ -384,7 +384,7 @@ sub complete_arg_val {
             return; # from eval
         }
 
-        my $ent = $arg_p->{'x.schema.entity'};
+        my $ent = $arg_spec->{'x.schema.entity'};
         if ($ent) {
             require Module::Path::More;
             my $mod = "Perinci::Sub::ArgEntity::$ent";
@@ -403,7 +403,7 @@ sub complete_arg_val {
             }
         }
 
-        my $sch = $arg_p->{schema};
+        my $sch = $arg_spec->{schema};
         unless ($sch) {
             $log->tracef("[comp][periscomp] arg spec does not specify schema, declining");
             return; # from eval
@@ -470,8 +470,8 @@ sub complete_arg_elem {
 
     # XXX reject if meta's v is not 1.1
 
-    my $args_p = $meta->{args} // {};
-    my $arg_p = $args_p->{$arg} or do {
+    my $args_prop = $meta->{args} // {};
+    my $arg_spec = $args_prop->{$arg} or do {
         $log->tracef("[comp][periscomp] arg '$arg' is not specified in meta, declining");
         goto RETURN_RES;
     };
@@ -479,7 +479,7 @@ sub complete_arg_elem {
     my $static;
     eval { # completion sub can die, etc.
 
-        my $elcomp = $arg_p->{element_completion};
+        my $elcomp = $arg_spec->{element_completion};
         $ourextras->{index} = $index;
         if ($elcomp) {
             if (ref($elcomp) eq 'CODE') {
@@ -518,7 +518,7 @@ sub complete_arg_elem {
             return; # from eval
         }
 
-        my $ent = $arg_p->{'x.schema.element_entity'};
+        my $ent = $arg_spec->{'x.schema.element_entity'};
         if ($ent) {
             require Module::Path::More;
             my $mod = "Perinci::Sub::ArgEntity::$ent";
@@ -537,7 +537,7 @@ sub complete_arg_elem {
             }
         }
 
-        my $sch = $arg_p->{schema};
+        my $sch = $arg_spec->{schema};
         unless ($sch) {
             $log->tracef("[comp][periscomp] arg spec does not specify schema, declining");
             return; # from eval
@@ -705,7 +705,7 @@ sub complete_cli_arg {
     my $fres;
 
     my $word   = $words->[$cword];
-    my $args_p = $meta->{args} // {};
+    my $args_prop = $meta->{args} // {};
 
     $log->tracef('[comp][periscomp] entering %s(), words=%s, cword=%d, word=<%s>',
                  $fname, $words, $cword, $word);
@@ -752,7 +752,7 @@ sub complete_cli_arg {
             if ($sm->{arg}) {
                 $log->tracef("[comp][periscomp] completing option value for a known function argument, arg=<%s>, ospec=<%s>", $sm->{arg}, $ospec);
                 $cargs{arg} = $sm->{arg};
-                my $as = $args_p->{$sm->{arg}} or goto RETURN_RES;
+                my $arg_spec = $args_prop->{$sm->{arg}} or goto RETURN_RES;
                 if ($comp) {
                     $log->tracef("[comp][periscomp] invoking routine supplied from 'completion' argument");
                     my $compres;
@@ -820,10 +820,10 @@ sub complete_cli_arg {
             my $fasa = $args{func_arg_starts_at} // 0;
 
             # find if there is a non-greedy argument with the exact position
-            for my $an (keys %$args_p) {
-                my $as = $args_p->{$an};
-                next unless !$as->{greedy} &&
-                    defined($as->{pos}) && $as->{pos} == $pos - $fasa;
+            for my $an (keys %$args_prop) {
+                my $arg_spec = $args_prop->{$an};
+                next unless !$arg_spec->{greedy} &&
+                    defined($arg_spec->{pos}) && $arg_spec->{pos} == $pos - $fasa;
                 $log->tracef("[comp][periscomp] this argument position is for non-greedy function argument <%s>", $an);
                 $cargs{arg} = $an;
                 if ($comp) {
@@ -845,12 +845,12 @@ sub complete_cli_arg {
             # find if there is a greedy argument which takes elements at that
             # position
             for my $an (sort {
-                ($args_p->{$b}{pos} // 9999) <=> ($args_p->{$a}{pos} // 9999)
-            } keys %$args_p) {
-                my $as = $args_p->{$an};
-                next unless $as->{greedy} &&
-                    defined($as->{pos}) && $as->{pos} <= $pos - $fasa;
-                my $index = $pos - $fasa - $as->{pos};
+                ($args_prop->{$b}{pos} // 9999) <=> ($args_prop->{$a}{pos} // 9999)
+            } keys %$args_prop) {
+                my $arg_spec = $args_prop->{$an};
+                next unless $arg_spec->{greedy} &&
+                    defined($arg_spec->{pos}) && $arg_spec->{pos} <= $pos - $fasa;
+                my $index = $pos - $fasa - $arg_spec->{pos};
                 $cargs{arg} = $an;
                 $cargs{index} = $index;
                 $log->tracef("[comp][periscomp] this position is for greedy function argument <%s>'s element[%d]", $an, $index);
