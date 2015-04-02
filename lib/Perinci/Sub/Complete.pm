@@ -348,16 +348,57 @@ sub complete_arg_val {
     my $static;
     eval { # completion sub can die, etc.
 
-        my $comp = $arg_spec->{completion};
+        my $comp;
+      GET_COMP_ROUTINE:
+        {
+            $comp = $arg_spec->{completion};
+            if ($comp) {
+                $log->tracef("[comp][periscomp] using arg completion routine from 'completion' property");
+                last GET_COMP_ROUTINE;
+            }
+            my $xcomp = $arg_spec->{'x.completion'};
+            if ($xcomp) {
+                require Module::Path::More;
+                my $mod = "Perinci::Sub::XCompletion::$xcomp->[0]";
+                if (Module::Path::More::module_path(module=>$mod)) {
+                    $log->tracef("[comp][periscomp] loading module %s ...", $mod);
+                    my $mod_pm = $mod; $mod_pm =~ s!::!/!g; $mod_pm .= ".pm";
+                    require $mod_pm;
+                    my $fref = \&{"$mod\::gen_completion"};
+                    $comp = $fref->(%{ $xcomp->[1] });
+                }
+                if ($comp) {
+                    $log->tracef("[comp][periscomp] using arg completion routine from 'x.completion' attribute");
+                    last GET_COMP_ROUTINE;
+                }
+            }
+            my $ent = $arg_spec->{'x.schema.entity'};
+            if ($ent) {
+                require Module::Path::More;
+                my $mod = "Perinci::Sub::ArgEntity::$ent";
+                if (Module::Path::More::module_path(module=>$mod)) {
+                    $log->tracef("[comp][periscomp] loading module %s ...", $mod);
+                    my $mod_pm = $mod; $mod_pm =~ s!::!/!g; $mod_pm .= ".pm";
+                    require $mod_pm;
+                    if (defined &{"$mod\::complete_arg_val"}) {
+                        $log->tracef("[comp][periscomp] using arg completion routine from complete_arg_val() from %s", $mod);
+                        $comp = \&{"$mod\::complete_arg_val"};
+                        last GET_COMP_ROUTINE;
+                    }
+                }
+            }
+        } # GET_COMP_ROUTINE
+
         if ($comp) {
             if (ref($comp) eq 'CODE') {
-                $log->tracef("[comp][periscomp] invoking routine specified in arg spec's 'completion' property");
+                $log->tracef("[comp][periscomp] invoking arg completion routine");
                 $fres = $comp->(
                     %$extras,
                     word=>$word, ci=>$ci, arg=>$arg, args=>$args{args});
                 return; # from eval
             } elsif (ref($comp) eq 'ARRAY') {
-                $log->tracef("[comp][periscomp] using array specified in arg spec's 'completion' property: %s", $comp);
+                # this is deprecated but will be supported for some time
+                $log->tracef("[comp][periscomp] using array specified in arg completion routine: %s", $comp);
                 $fres = complete_array_elem(
                     array=>$comp, word=>$word, ci=>$ci);
                 $static++;
@@ -382,25 +423,6 @@ sub complete_arg_val {
 
             $log->tracef("[comp][periscomp] declining");
             return; # from eval
-        }
-
-        my $ent = $arg_spec->{'x.schema.entity'};
-        if ($ent) {
-            require Module::Path::More;
-            my $mod = "Perinci::Sub::ArgEntity::$ent";
-            if (Module::Path::More::module_path(module=>$mod)) {
-                $log->tracef("[comp][periscomp] loading module %s ...", $mod);
-                my $mod_pm = $mod; $mod_pm =~ s!::!/!g; $mod_pm .= ".pm";
-                require $mod_pm;
-                if (defined &{"$mod\::complete_arg_val"}) {
-                    $log->tracef("[comp][periscomp] invoking complete_arg_val from %s ...", $mod);
-                    my $fref = \&{"$mod\::complete_arg_val"};
-                    $fres = $fref->(
-                        %$extras,
-                        word=>$word, ci=>$ci, arg=>$arg, args=>$args{args});
-                    return; # from eval
-                }
-            }
         }
 
         my $sch = $arg_spec->{schema};
@@ -479,18 +501,58 @@ sub complete_arg_elem {
     my $static;
     eval { # completion sub can die, etc.
 
-        my $elcomp = $arg_spec->{element_completion};
+        my $elcomp;
+      GET_ELCOMP_ROUTINE:
+        {
+            $elcomp = $arg_spec->{element_completion};
+            if ($elcomp) {
+                $log->tracef("[comp][periscomp] using arg element completion routine from 'element_completion' property");
+                last GET_ELCOMP_ROUTINE;
+            }
+            my $xelcomp = $arg_spec->{'x.element_completion'};
+            if ($xelcomp) {
+               require Module::Path::More;
+                my $mod = "Perinci::Sub::XCompletion::$xelcomp->[0]";
+                if (Module::Path::More::module_path(module=>$mod)) {
+                    $log->tracef("[comp][periscomp] loading module %s ...", $mod);
+                    my $mod_pm = $mod; $mod_pm =~ s!::!/!g; $mod_pm .= ".pm";
+                    require $mod_pm;
+                    my $fref = \&{"$mod\::gen_completion"};
+                    $elcomp = $fref->(%{ $xelcomp->[1] });
+                }
+                if ($elcomp) {
+                    $log->tracef("[comp][periscomp] using arg element completion routine from 'x.element_completion' attribute");
+                    last GET_ELCOMP_ROUTINE;
+                }
+            }
+            my $ent = $arg_spec->{'x.schema.element_entity'};
+            if ($ent) {
+                require Module::Path::More;
+                my $mod = "Perinci::Sub::ArgEntity::$ent";
+                if (Module::Path::More::module_path(module=>$mod)) {
+                    $log->tracef("[comp][periscomp] loading module %s ...", $mod);
+                    my $mod_pm = $mod; $mod_pm =~ s!::!/!g; $mod_pm .= ".pm";
+                    require $mod_pm;
+                    if (defined &{"$mod\::complete_arg_val"}) {
+                        $log->tracef("[comp][periscomp] using arg element completion routine from complete_arg_val() from %s", $mod);
+                        $elcomp = \&{"$mod\::complete_arg_val"};
+                        last GET_ELCOMP_ROUTINE;
+                    }
+                }
+            }
+        } # GET_ELCOMP_ROUTINE
+
         $ourextras->{index} = $index;
         if ($elcomp) {
             if (ref($elcomp) eq 'CODE') {
-                $log->tracef("[comp][periscomp] invoking routine specified in arg spec's 'element_completion' property");
+                $log->tracef("[comp][periscomp] invoking arg element completion routine");
                 $fres = $elcomp->(
                     %$extras,
                     %$ourextras,
                     word=>$word, ci=>$ci);
                 return; # from eval
             } elsif (ref($elcomp) eq 'ARRAY') {
-                $log->tracef("[comp][periscomp] using array specified in arg spec's 'element_completion' property: %s", $elcomp);
+                $log->tracef("[comp][periscomp] using array specified in arg element completion routine: %s", $elcomp);
                 $fres = complete_array_elem(
                     array=>$elcomp, word=>$word, ci=>$ci);
                 $static = $word eq '';
@@ -516,25 +578,6 @@ sub complete_arg_elem {
 
             $log->tracef("[comp][periscomp] declining");
             return; # from eval
-        }
-
-        my $ent = $arg_spec->{'x.schema.element_entity'};
-        if ($ent) {
-            require Module::Path::More;
-            my $mod = "Perinci::Sub::ArgEntity::$ent";
-            if (Module::Path::More::module_path(module=>$mod)) {
-                $log->tracef("[comp][periscomp] loading module %s ...", $mod);
-                my $mod_pm = $mod; $mod_pm =~ s!::!/!g; $mod_pm .= ".pm";
-                require $mod_pm;
-                if (defined &{"$mod\::complete_arg_val"}) {
-                    $log->tracef("[comp][periscomp] invoking complete_arg_val from %s ...", $mod);
-                    my $fref = \&{"$mod\::complete_arg_val"};
-                    $fres = $fref->(
-                        %$extras,
-                        word=>$word, ci=>$ci, arg=>$arg, args=>$args{args});
-                    return; # from eval
-                }
-            }
         }
 
         my $sch = $arg_spec->{schema};
