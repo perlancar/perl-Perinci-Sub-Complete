@@ -1,5 +1,11 @@
 Revision history for Perinci-Sub-Complete
 
+0.77    2015-04-02 (PERLANCAR)
+
+	- Observe x.completion & x.element_completion attributes in
+	  argument specification (experimental).
+
+
 0.76    2015-03-30 (PERLANCAR)
 
 	- complete_from_schema(): Handle 'any' type by combining answers
