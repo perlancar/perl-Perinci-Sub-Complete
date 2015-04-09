@@ -7,7 +7,7 @@ use 5.010001;
 use strict;
 use warnings;
 use experimental 'smartmatch';
-use Log::Any '$log';
+use Log::Any::IfLOG '$log';
 
 use Complete;
 use Complete::Util qw(hashify_answer complete_array_elem combine_answers);
