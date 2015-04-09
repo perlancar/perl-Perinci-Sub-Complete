@@ -1,5 +1,10 @@
 Revision history for Perinci-Sub-Complete
 
+0.78    2015-04-09 (PERLANCAR)
+
+	- Replace Log::Any with Log::Any::IfLOG.
+
+
 0.77    2015-04-02 (PERLANCAR)
 
 	- Observe x.completion & x.element_completion attributes in
