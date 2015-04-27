@@ -81,20 +81,20 @@ test_complete(
     name        => 'arg value, pos',
     args        => {meta=>$meta},
     comp_line0  => 'CMD ^',
-    result      => [sort(
+    result      => {static=>1, words=>[sort(
         qw(--a1 --a2 --a3 --arg0 --f0 --f1 --help --i0 --i1
            --i2 --s1 --s1b --s2 --s3 -? -h),
-        1..99)],
+        1..99)]},
 );
 test_complete(
     name        => 'arg value, pos + greedy',
     args        => {meta=>$meta},
     comp_line0  => 'CMD 2 ^',
-    result      => [
+    result      => {static=>1, words=>[
         qw(--a1 --a2 --a3 --arg0 --f0 --f1 --help --i0 --i1
            --i2 --s1 --s1b --s2 --s3 -? -h),
         'apple', 'apricot', 'banana', 'grape', 'grapefruit', 'green grape',
-        'red date', 'red grape'],
+        'red date', 'red grape']},
 );
 
 test_complete(
