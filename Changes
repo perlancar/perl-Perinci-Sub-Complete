@@ -1,5 +1,12 @@
 Revision history for Perinci-Sub-Complete
 
+0.79    2015-04-27 (PERLANCAR)
+
+	- No functional changes.
+
+        - Adjust tests to Complete::Getopt::Long 0.32 [CT].
+
+
 0.78    2015-04-09 (PERLANCAR)
 
 	- Replace Log::Any with Log::Any::IfLOG.
