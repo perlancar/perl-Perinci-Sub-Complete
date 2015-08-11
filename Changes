@@ -1,5 +1,13 @@
 Revision history for Perinci-Sub-Complete
 
+0.80    2015-08-11 (PERLANCAR)
+
+	- No functional changes.
+
+	- Avoid using experimental (+Carp) to shave off a few milliseconds
+	  of startup time.
+
+
 0.79    2015-04-27 (PERLANCAR)
 
 	- No functional changes.
