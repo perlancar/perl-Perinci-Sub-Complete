@@ -1,5 +1,11 @@
 Revision history for Perinci-Sub-Complete
 
+0.82    2015-09-09 (PERLANCAR)
+
+	- [dist] Use Complete::Setting instead of Complete, the settings
+	  have been split to a separate module in 0.13.
+
+
 0.81    2015-09-03 (PERLANCAR)
 
 	- No functional changes.
