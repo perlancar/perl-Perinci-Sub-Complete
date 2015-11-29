@@ -9,7 +9,7 @@ use warnings;
 use Log::Any::IfLOG '$log';
 
 use Complete::Util qw(hashify_answer complete_array_elem combine_answers);
-use Complete::Setting;
+use Complete::Common qw(:all);
 use Perinci::Sub::Util qw(gen_modified_sub);
 
 require Exporter;
@@ -85,16 +85,12 @@ _
             schema => [str => default => ''],
             req => 1,
         },
-        ci => {
-            schema => 'bool',
-        },
     },
 };
 sub complete_from_schema {
     my %args = @_;
     my $sch  = $args{schema}; # must be normalized
     my $word = $args{word} // "";
-    my $ci   = $args{ci} // $Complete::Setting::OPT_CI;
 
     my $fres;
     $log->tracef("[comp][periscomp] entering complete_from_schema, word=<%s>, schema=%s", $word, $sch);
@@ -126,7 +122,6 @@ sub complete_from_schema {
                         complete_from_schema(
                             schema=>Data::Sah::Normalize::normalize_schema($_),
                             word => $word,
-                            ci => $ci,
                         )
                     } @{ $cs->{of} }
                 );
@@ -237,7 +232,7 @@ sub complete_from_schema {
 
     goto RETURN_RES unless $words;
     $fres = hashify_answer(
-        complete_array_elem(array=>$words, word=>$word, ci=>$ci),
+        complete_array_elem(array=>$words, word=>$word),
         {static=>$static && $word eq '' ? 1:0},
     );
 
@@ -289,10 +284,6 @@ _
             summary => 'Word to be completed',
             schema => ['str*', default => ''],
         },
-        ci => {
-            summary => 'Whether to be case-insensitive',
-            schema => ['bool*'],
-        },
         args => {
             summary => 'Collected arguments so far, '.
                 'will be passed to completion routines',
@@ -333,7 +324,6 @@ sub complete_arg_val {
         $log->tracef("[comp][periscomp] arg is not supplied, declining");
         goto RETURN_RES;
     };
-    my $ci   = $args{ci} // $Complete::Setting::OPT_CI;
     my $word = $args{word} // '';
 
     # XXX reject if meta's v is not 1.1
@@ -398,8 +388,7 @@ sub complete_arg_val {
             } elsif (ref($comp) eq 'ARRAY') {
                 # this is deprecated but will be supported for some time
                 $log->tracef("[comp][periscomp] using array specified in arg completion routine: %s", $comp);
-                $fres = complete_array_elem(
-                    array=>$comp, word=>$word, ci=>$ci);
+                $fres = complete_array_elem(array=>$comp, word=>$word);
                 $static++;
                 return; # from eval
             }
@@ -486,7 +475,6 @@ sub complete_arg_elem {
         $log->tracef("[comp][periscomp] index is not supplied, declining");
         goto RETURN_RES;
     };
-    my $ci   = $args{ci} // $Complete::Setting::OPT_CI;
     my $word = $args{word} // '';
 
     # XXX reject if meta's v is not 1.1
@@ -552,8 +540,7 @@ sub complete_arg_elem {
                 return; # from eval
             } elsif (ref($elcomp) eq 'ARRAY') {
                 $log->tracef("[comp][periscomp] using array specified in arg element completion routine: %s", $elcomp);
-                $fres = complete_array_elem(
-                    array=>$elcomp, word=>$word, ci=>$ci);
+                $fres = complete_array_elem(array=>$elcomp, word=>$word);
                 $static = $word eq '';
             }
 
@@ -779,7 +766,6 @@ sub complete_cli_arg {
         my $type  = $cargs{type};
         my $ospec = $cargs{ospec} // '';
         my $word  = $cargs{word};
-        my $ci    = $cargs{ci} // $Complete::Setting::OPT_CI;
 
         my $fres;
 
