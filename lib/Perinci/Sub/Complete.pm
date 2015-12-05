@@ -383,7 +383,7 @@ sub complete_arg_val {
                 $log->tracef("[comp][periscomp] invoking arg completion routine");
                 $fres = $comp->(
                     %$extras,
-                    word=>$word, ci=>$ci, arg=>$arg, args=>$args{args});
+                    word=>$word, arg=>$arg, args=>$args{args});
                 return; # from eval
             } elsif (ref($comp) eq 'ARRAY') {
                 # this is deprecated but will be supported for some time
@@ -399,7 +399,7 @@ sub complete_arg_val {
                 my $res = $args{riap_client}->request(
                     complete_arg_val => $args{riap_server_url},
                     {(uri=>$args{riap_uri}) x !!defined($args{riap_uri}),
-                     arg=>$arg, word=>$word, ci=>$ci},
+                     arg=>$arg, word=>$word},
                 );
                 if ($res->[0] != 200) {
                     $log->tracef("[comp][periscomp] Riap request failed (%s), declining", $res);
@@ -421,7 +421,7 @@ sub complete_arg_val {
 
         # XXX normalize schema if not normalized
 
-        $fres = complete_from_schema(schema=>$sch, word=>$word, ci=>$ci);
+        $fres = complete_from_schema(schema=>$sch, word=>$word);
     };
     $log->debug("[comp][periscomp] completion died: $@") if $@;
     unless ($fres) {
@@ -536,7 +536,7 @@ sub complete_arg_elem {
                 $fres = $elcomp->(
                     %$extras,
                     %$ourextras,
-                    word=>$word, ci=>$ci);
+                    word=>$word);
                 return; # from eval
             } elsif (ref($elcomp) eq 'ARRAY') {
                 $log->tracef("[comp][periscomp] using array specified in arg element completion routine: %s", $elcomp);
@@ -551,7 +551,7 @@ sub complete_arg_elem {
                 my $res = $args{riap_client}->request(
                     complete_arg_elem => $args{riap_server_url},
                     {(uri=>$args{riap_uri}) x !!defined($args{riap_uri}),
-                     arg=>$arg, args=>$args{args}, word=>$word, ci=>$ci,
+                     arg=>$arg, args=>$args{args}, word=>$word,
                      index=>$index},
                 );
                 if ($res->[0] != 200) {
@@ -589,7 +589,7 @@ sub complete_arg_elem {
         # does not do it yet
         my $elsch = Data::Sah::Normalize::normalize_schema($cs->{of});
 
-        $fres = complete_from_schema(schema=>$elsch, word=>$word, ci=>$ci);
+        $fres = complete_from_schema(schema=>$elsch, word=>$word);
     };
     $log->debug("[comp][periscomp] completion died: $@") if $@;
     unless ($fres) {
@@ -835,7 +835,7 @@ sub complete_cli_arg {
                         $codata->{schema});
                     $log->tracef("[comp][periscomp] completing with common option's schema");
                     $fres = complete_from_schema(
-                        schema => $nsch, word=>$word, ci=>$ci);
+                        schema => $nsch, word=>$word);
                     goto RETURN_RES;
                 }
                 goto RETURN_RES;
