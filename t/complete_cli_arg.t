@@ -209,7 +209,7 @@ sub test_complete {
             die "BUG: comp_line0 should contain ^ to indicate where comp_point is";
         $comp_line =~ s/\^//;
 
-        my ($words, $cword) = @{ parse_cmdline($comp_line, $comp_point, '=') };
+        my ($words, $cword) = @{ parse_cmdline($comp_line, $comp_point, {truncate_current_word=>1}) };
         shift @$words; $cword--; # strip program name
 
         my $copts = {help => {getopt=>'help|h|?', handler=>sub{}}};
