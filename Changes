@@ -1,5 +1,14 @@
 Revision history for Perinci-Sub-Complete
 
+0.84    2015-12-30 (PERLANCAR)
+
+	- No functional changes.
+
+	- Adjust to Complete::Bash 0.23.
+
+	- Bump prereq version Log::Any::IfLOG to 0.07.
+
+
 0.83    2015-12-05 (PERLANCAR)
 
 	- Adjust to Complete::Common 0.21.
