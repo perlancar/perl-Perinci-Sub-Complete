@@ -5,7 +5,7 @@ use strict;
 use warnings;
 #use Log::Any '$log';
 
-use Complete::Bash qw(parse_cmdline);
+use Complete::Bash qw(parse_cmdline join_wordbreak_words);
 use Complete::Getopt::Long;
 use Monkey::Patch::Action qw(patch_package);
 use Perinci::Examples qw();
@@ -210,6 +210,7 @@ sub test_complete {
         $comp_line =~ s/\^//;
 
         my ($words, $cword) = @{ parse_cmdline($comp_line, $comp_point, {truncate_current_word=>1}) };
+        ($words, $cword) = @{ join_wordbreak_words($words, $cword) };
         shift @$words; $cword--; # strip program name
 
         my $copts = {help => {getopt=>'help|h|?', handler=>sub{}}};
