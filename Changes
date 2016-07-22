@@ -1,5 +1,14 @@
 Revision history for Perinci-Sub-Complete
 
+0.85    2016-07-22 (PERLANCAR)
+
+        - complete_from_schema(): look up Sah::SchemaR::* modules when schema's
+          type is not a known built-in type.
+
+        - complete_from_schema(): observe x.completion in schema, just like in
+          arg spec.
+
+
 0.84    2015-12-30 (PERLANCAR)
 
 	- No functional changes.

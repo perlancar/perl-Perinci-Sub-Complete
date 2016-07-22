@@ -15,13 +15,13 @@ subtest "schema must be normalized" => sub {
 };
 
 subtest "is clause" => sub {
-    is_deeply(complete_from_schema(schema=>[foo => {is=>"x"}, {}], word=>''),
+    is_deeply(complete_from_schema(schema=>[str => {is=>"x"}, {}], word=>''),
               {words=>[sort qw/x/], static=>1});
-    is_deeply(complete_from_schema(schema=>[foo => {is=>["x"]}, {}], word=>''), undef);
+    is_deeply(complete_from_schema(schema=>[str => {is=>["x"]}, {}], word=>''), undef);
 };
 
 subtest "in clause" => sub {
-    my $sch = [foo => {in=>[qw/bar baz/]}, {}];
+    my $sch = [str => {in=>[qw/bar baz/]}, {}];
     is_deeply(complete_from_schema(schema=>$sch, word=>''),
               {words=>[sort qw/bar baz/], static=>1});
 };
@@ -148,6 +148,14 @@ subtest any => sub {
     $sch = [any => {of => [ [str => in=>["1a"]], ["code"] ]}];
     is_deeply(complete_from_schema(schema=>$sch, word=>''),
               {words=>[qw/1a/], static=>1});
+};
+
+subtest "schema is based on other schema" => sub {
+    is_deeply(complete_from_schema(schema=>['foo'], word=>''), undef);
+    is_deeply(complete_from_schema(schema=>['posint'], word=>''),
+              {words=>[qw/1 2 3 4 5 6 7 8 9/], static=>0});
+    is_deeply(complete_from_schema(schema=>['negint'], word=>''),
+              {words=>[qw/-1 -2 -3 -4 -5 -6 -7 -8 -9/], static=>0});
 };
 
 DONE_TESTING:
