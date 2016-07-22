@@ -97,17 +97,57 @@ sub complete_from_schema {
 
     my ($type, $cs) = @{$sch};
 
+    # schema might be based on other schemas, if that is the case, let's try to
+    # look at Sah::SchemaR::* module to quickly find the base type
+    unless ($type =~ /\A(all|any|array|bool|buf|cistr|code|date|duration|float|hash|int|num|obj|re|str|undef)\z/) {
+        no strict 'refs';
+        my $pkg = "Sah::SchemaR::$type";
+        (my $pkg_pm = "$pkg.pm") =~ s!::!/!g;
+        eval { require $pkg_pm; 1 };
+        goto RETURN_RES if $@;
+        my $rsch = ${"$pkg\::rschema"};
+        $type = $rsch->[0];
+        # let's just merge everything, for quick checking of clause
+        $cs = {};
+        for my $cs0 (@{ $rsch->[1] // [] }) {
+            for (keys %$cs0) {
+                $cs->{$_} = $cs0->{$_};
+            }
+        }
+        $log->tracef("[comp][periscomp] retrieving schema from module %s, base type=%s", $pkg, $type);
+    }
+
     my $static;
     my $words;
     eval {
+        if (my $xcomp = $cs->{'x.completion'}) {
+            require Module::Path::More;
+            my $mod = "Perinci::Sub::XCompletion::$xcomp->[0]";
+            my $comp;
+            if (Module::Path::More::module_path(module=>$mod)) {
+                $log->tracef("[comp][periscomp] loading module %s ...", $mod);
+                my $mod_pm = $mod; $mod_pm =~ s!::!/!g; $mod_pm .= ".pm";
+                require $mod_pm;
+                my $fref = \&{"$mod\::gen_completion"};
+                $comp = $fref->(%{ $xcomp->[1] });
+            }
+            if ($comp) {
+                $log->tracef("[comp][periscomp] using arg completion routine from schema's 'x.completion' attribute");
+                $fres = $comp->(
+                    %{$args{extras} // {}},
+                    word=>$word, arg=>$args{arg}, args=>$args{args});
+                return; # from eval
+                }
+            }
+
         if ($cs->{is} && !ref($cs->{is})) {
-            $log->tracef("[comp][periscomp] adding completion from 'is' clause");
+            $log->tracef("[comp][periscomp] adding completion from schema's 'is' clause");
             push @$words, $cs->{is};
             $static++;
             return; # from eval. there should not be any other value
         }
         if ($cs->{in}) {
-            $log->tracef("[comp][periscomp] adding completion from 'in' clause");
+            $log->tracef("[comp][periscomp] adding completion from schema's 'in' clause");
             push @$words, grep {!ref($_)} @{ $cs->{in} };
             $static++;
             return; # from eval. there should not be any other value
@@ -138,32 +178,32 @@ sub complete_from_schema {
             my $limit = 100;
             if ($cs->{between} &&
                     $cs->{between}[0] - $cs->{between}[0] <= $limit) {
-                $log->tracef("[comp][periscomp] adding completion from 'between' clause");
+                $log->tracef("[comp][periscomp] adding completion from schema's 'between' clause");
                 push @$words, $cs->{between}[0] .. $cs->{between}[1];
                 $static++;
             } elsif ($cs->{xbetween} &&
                          $cs->{xbetween}[0] - $cs->{xbetween}[0] <= $limit) {
-                $log->tracef("[comp][periscomp] adding completion from 'xbetween' clause");
+                $log->tracef("[comp][periscomp] adding completion from schema's 'xbetween' clause");
                 push @$words, $cs->{xbetween}[0]+1 .. $cs->{xbetween}[1]-1;
                 $static++;
             } elsif (defined($cs->{min}) && defined($cs->{max}) &&
                          $cs->{max}-$cs->{min} <= $limit) {
-                $log->tracef("[comp][periscomp] adding completion from 'min' & 'max' clauses");
+                $log->tracef("[comp][periscomp] adding completion from schema's 'min' & 'max' clauses");
                 push @$words, $cs->{min} .. $cs->{max};
                 $static++;
             } elsif (defined($cs->{min}) && defined($cs->{xmax}) &&
                          $cs->{xmax}-$cs->{min} <= $limit) {
-                $log->tracef("[comp][periscomp] adding completion from 'min' & 'xmax' clauses");
+                $log->tracef("[comp][periscomp] adding completion from schema's 'min' & 'xmax' clauses");
                 push @$words, $cs->{min} .. $cs->{xmax}-1;
                 $static++;
             } elsif (defined($cs->{xmin}) && defined($cs->{max}) &&
                          $cs->{max}-$cs->{xmin} <= $limit) {
-                $log->tracef("[comp][periscomp] adding completion from 'xmin' & 'max' clauses");
+                $log->tracef("[comp][periscomp] adding completion from schema's 'xmin' & 'max' clauses");
                 push @$words, $cs->{xmin}+1 .. $cs->{max};
                 $static++;
             } elsif (defined($cs->{xmin}) && defined($cs->{xmax}) &&
                          $cs->{xmax}-$cs->{xmin} <= $limit) {
-                $log->tracef("[comp][periscomp] adding completion from 'xmin' & 'xmax' clauses");
+                $log->tracef("[comp][periscomp] adding completion from schema's 'xmin' & 'xmax' clauses");
                 push @$words, $cs->{xmin}+1 .. $cs->{xmax}-1;
                 $static++;
             } elsif (length($word) && $word !~ /\A-?\d*\z/) {
@@ -342,7 +382,7 @@ sub complete_arg_val {
         {
             $comp = $arg_spec->{completion};
             if ($comp) {
-                $log->tracef("[comp][periscomp] using arg completion routine from 'completion' property");
+                $log->tracef("[comp][periscomp] using arg completion routine from arg spec's 'completion' property");
                 last GET_COMP_ROUTINE;
             }
             my $xcomp = $arg_spec->{'x.completion'};
@@ -357,7 +397,7 @@ sub complete_arg_val {
                     $comp = $fref->(%{ $xcomp->[1] });
                 }
                 if ($comp) {
-                    $log->tracef("[comp][periscomp] using arg completion routine from 'x.completion' attribute");
+                    $log->tracef("[comp][periscomp] using arg completion routine from arg spec's 'x.completion' attribute");
                     last GET_COMP_ROUTINE;
                 }
             }
@@ -421,7 +461,7 @@ sub complete_arg_val {
 
         # XXX normalize schema if not normalized
 
-        $fres = complete_from_schema(schema=>$sch, word=>$word);
+        $fres = complete_from_schema(arg=>$arg, extras=>$extras, schema=>$sch, word=>$word);
     };
     $log->debug("[comp][periscomp] completion died: $@") if $@;
     unless ($fres) {
