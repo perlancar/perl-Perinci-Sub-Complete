@@ -121,10 +121,10 @@ sub complete_from_schema {
     my $words;
     eval {
         if (my $xcomp = $cs->{'x.completion'}) {
-            require Module::Path::More;
+            require Module::Installed::Tiny;
             my $mod = "Perinci::Sub::XCompletion::$xcomp->[0]";
             my $comp;
-            if (Module::Path::More::module_path(module=>$mod)) {
+            if (Module::Installed::Tiny::module_installed($mod)) {
                 $log->tracef("[comp][periscomp] loading module %s ...", $mod);
                 my $mod_pm = $mod; $mod_pm =~ s!::!/!g; $mod_pm .= ".pm";
                 require $mod_pm;
@@ -387,9 +387,9 @@ sub complete_arg_val {
             }
             my $xcomp = $arg_spec->{'x.completion'};
             if ($xcomp) {
-                require Module::Path::More;
+                require Module::Installed::Tiny;
                 my $mod = "Perinci::Sub::XCompletion::$xcomp->[0]";
-                if (Module::Path::More::module_path(module=>$mod)) {
+                if (Module::Installed::Tiny::module_installed($mod)) {
                     $log->tracef("[comp][periscomp] loading module %s ...", $mod);
                     my $mod_pm = $mod; $mod_pm =~ s!::!/!g; $mod_pm .= ".pm";
                     require $mod_pm;
@@ -403,9 +403,9 @@ sub complete_arg_val {
             }
             my $ent = $arg_spec->{'x.schema.entity'};
             if ($ent) {
-                require Module::Path::More;
+                require Module::Installed::Tiny;
                 my $mod = "Perinci::Sub::ArgEntity::$ent";
-                if (Module::Path::More::module_path(module=>$mod)) {
+                if (Module::Installed::Tiny::module_installed($mod)) {
                     $log->tracef("[comp][periscomp] loading module %s ...", $mod);
                     my $mod_pm = $mod; $mod_pm =~ s!::!/!g; $mod_pm .= ".pm";
                     require $mod_pm;
@@ -538,9 +538,9 @@ sub complete_arg_elem {
             }
             my $xelcomp = $arg_spec->{'x.element_completion'};
             if ($xelcomp) {
-               require Module::Path::More;
+               require Module::Installed::Tiny;
                 my $mod = "Perinci::Sub::XCompletion::$xelcomp->[0]";
-                if (Module::Path::More::module_path(module=>$mod)) {
+               if (Module::Installed::Tiny::module_installed($mod)) {
                     $log->tracef("[comp][periscomp] loading module %s ...", $mod);
                     my $mod_pm = $mod; $mod_pm =~ s!::!/!g; $mod_pm .= ".pm";
                     require $mod_pm;
@@ -554,9 +554,9 @@ sub complete_arg_elem {
             }
             my $ent = $arg_spec->{'x.schema.element_entity'};
             if ($ent) {
-                require Module::Path::More;
+                require Module::Installed::Tiny;
                 my $mod = "Perinci::Sub::ArgEntity::$ent";
-                if (Module::Path::More::module_path(module=>$mod)) {
+                if (Module::Installed::Tiny::module_installed($mod)) {
                     $log->tracef("[comp][periscomp] loading module %s ...", $mod);
                     my $mod_pm = $mod; $mod_pm =~ s!::!/!g; $mod_pm .= ".pm";
                     require $mod_pm;
