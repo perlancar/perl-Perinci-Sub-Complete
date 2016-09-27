@@ -304,9 +304,9 @@ as well as extra keys from `extras` (but these won't overwrite the above
 standard keys).
 
 Completion routine should return a completion answer structure (described in
-`Complete`) which is either a hash or an array. The simplest form of answer is
-just to return an array of strings. Completion routine can also return undef to
-express declination.
+<pm:Complete>) which is either a hash or an array. The simplest form of answer
+is just to return an array of strings. Completion routine can also return undef
+to express declination.
 
 _
     args => {
@@ -649,9 +649,9 @@ $SPEC{complete_cli_arg} = {
     summary => 'Complete command-line argument using Rinci function metadata',
     description => <<'_',
 
-This routine uses `Perinci::Sub::GetArgs::Argv` to generate `Getopt::Long`
+This routine uses <pm:Perinci::Sub::GetArgs::Argv> to generate <pm:Getopt::Long>
 specification from arguments list in Rinci function metadata and common options.
-Then, it will use `Complete::Getopt::Long` to complete option names, option
+Then, it will use <pm:Complete::Getopt::Long> to complete option names, option
 values, as well as arguments.
 
 _
@@ -676,8 +676,8 @@ _
             description => <<'_',
 
 If supplied, instead of the default completion routine, this code will be called
-instead. Will receive all arguments that `Complete::Getopt::Long` will pass, and
-additionally:
+instead. Will receive all arguments that <pm:Complete::Getopt::Long> will pass,
+and additionally:
 
 * `arg` (str, the name of function argument)
 * `args` (hash, the function arguments formed so far)
@@ -734,10 +734,10 @@ _
             default => 0,
             description => <<'_',
 
-This is a (temporary?) workaround for Perinci::CmdLine. In an application with
-subcommands (e.g. `cmd --verbose subcmd arg0 arg1 ...`), then `words` will still
-contain the subcommand name. Positional function arguments then start at 1 not
-0. This option allows offsetting function arguments.
+This is a (temporary?) workaround for <pm:Perinci::CmdLine>. In an application
+with subcommands (e.g. `cmd --verbose subcmd arg0 arg1 ...`), then `words` will
+still contain the subcommand name. Positional function arguments then start at 1
+not 0. This option allows offsetting function arguments.
 
 _
         },
@@ -748,7 +748,7 @@ _
         schema => 'hash*',
         description => <<'_',
 
-You can use `format_completion` function in `Complete::Bash` module to format
+You can use `format_completion` function in <pm:Complete::Bash> module to format
 the result of this function for bash.
 
 _
