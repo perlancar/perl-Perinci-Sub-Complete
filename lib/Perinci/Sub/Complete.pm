@@ -294,7 +294,6 @@ argument's schema using `complete_from_schema`.
 Completion routine will get `%args`, with the following keys:
 
 * `word` (str, the word to be completed)
-* `ci` (bool, whether string matching should be case-insensitive)
 * `arg` (str, the argument name which value is currently being completed)
 * `index (int, only for the `complete_arg_elem` function, the index in the
    argument array that is currently being completed, starts from 0)
@@ -335,8 +334,8 @@ _
             description => <<'_',
 
 The keys from this `extras` hash will be merged into the final `%args` passed to
-completion routines. Note that standard keys like `word`, `cword`, `ci`, and so
-on as described in the function description will not be overwritten by this.
+completion routines. Note that standard keys like `word`, `cword`, and so on as
+described in the function description will not be overwritten by this.
 
 _
         },
@@ -724,8 +723,8 @@ _
             description => <<'_',
 
 The keys from this `extras` hash will be merged into the final `%args` passed to
-completion routines. Note that standard keys like `word`, `cword`, `ci`, and so
-on as described in the function description will not be overwritten by this.
+completion routines. Note that standard keys like `word`, `cword`, and so on as
+described in the function description will not be overwritten by this.
 
 _
         },
