@@ -1,5 +1,12 @@
 Revision history for Perinci-Sub-Complete
 
+0.87    2016-10-28 (PERLANCAR)
+
+	- Provide 'parsed_opts' to handler in
+	  'completion'/'element_completion' properties for more
+	  information.
+
+
 0.86    2016-08-03 (PERLANCAR)
 
 	- Replace code to check for installed module from using
