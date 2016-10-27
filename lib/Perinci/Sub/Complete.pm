@@ -814,6 +814,8 @@ sub complete_cli_arg {
             riap_client     => $args{riap_client},
         );
 
+        $extras->{parsed_opts} = $cargs{parsed_opts};
+
         if (my $sm = $specmeta->{$ospec}) {
             $cargs{type} = 'optval';
             if ($sm->{arg}) {
