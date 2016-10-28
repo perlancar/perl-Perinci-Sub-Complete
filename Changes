@@ -1,5 +1,12 @@
 Revision history for Perinci-Sub-Complete
 
+0.88    2016-10-29 (PERLANCAR)
+
+	- No functional changes.
+
+	- Depend on Sah::SchemaR::* instead of Sah::Schema::* [RT#118535].
+
+
 0.87    2016-10-28 (PERLANCAR)
 
 	- Provide 'parsed_opts' to handler in
