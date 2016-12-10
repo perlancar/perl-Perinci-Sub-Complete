@@ -38,8 +38,8 @@ test_complete(
     args        => {meta=>$meta},
     comp_line0  => 'CMD -^',
     result      => {words=>
-                        [qw(--a1 --a2 --a3 --arg0 --f0 --f1 --help --i0 --i1
-                            --i2 --s1 --s1b --s2 --s3 -? -h)],
+                        [qw(--a1 --a2 --a3 --arg0 --f0 --f1 --h1 --h2 --help
+                            --i0 --i1 --i2 --s1 --s1b --s2 --s3 -? -h)],
                     esc_mode=>'option'},
 );
 test_complete(
@@ -82,7 +82,7 @@ test_complete(
     args        => {meta=>$meta},
     comp_line0  => 'CMD ^',
     result      => {static=>1, words=>[sort(
-        qw(--a1 --a2 --a3 --arg0 --f0 --f1 --help --i0 --i1
+        qw(--a1 --a2 --a3 --arg0 --f0 --f1 --h1 --h2 --help --i0 --i1
            --i2 --s1 --s1b --s2 --s3 -? -h),
         1..99)]},
 );
@@ -91,10 +91,35 @@ test_complete(
     args        => {meta=>$meta},
     comp_line0  => 'CMD 2 ^',
     result      => {static=>1, words=>[
-        qw(--a1 --a2 --a3 --arg0 --f0 --f1 --help --i0 --i1
+        qw(--a1 --a2 --a3 --arg0 --f0 --f1 --h1 --h2 --help --i0 --i1
            --i2 --s1 --s1b --s2 --s3 -? -h),
         'apple', 'apricot', 'banana', 'grape', 'grapefruit', 'green grape',
         'red date', 'red grape']},
+);
+
+test_complete(
+    name        => 'arg value, hash, keys from schema',
+    args        => {meta=>$meta},
+    comp_line0  => 'CMD --h1 ^',
+    result      => {static=>0, path_sep=>"=", esc_mode=>"none", words=>[qw/k1= k2= k3= k4=/]},
+);
+test_complete(
+    name        => 'arg value, hash, keys from schema, specified keys wont be mentioned again',
+    args        => {meta=>$meta},
+    comp_line0  => 'CMD --h1 k1=v1 --h1 ^',
+    result      => {static=>0, path_sep=>"=", esc_mode=>"none", words=>[qw/k2= k3= k4=/]},
+);
+test_complete(
+    name        => 'arg value, hash, keys from index_completion property',
+    args        => {meta=>$meta},
+    comp_line0  => 'CMD --h2 ^',
+    result      => {static=>1, path_sep=>"=", esc_mode=>"none", words=>[qw/k1= k2= k3= k4= k5= k6=/]},
+);
+test_complete(
+    name        => 'arg value, hash, values from element_completion property',
+    args        => {meta=>$meta},
+    comp_line0  => 'CMD --h1 k1=^',
+    result      => {static=>0, words=>[qw/k1=ak1 k1=bk1 k1=ck1 k1=dk1 k1=ek1/]},
 );
 
 test_complete(

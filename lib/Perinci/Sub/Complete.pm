@@ -612,9 +612,9 @@ sub complete_arg_elem {
             return; # from eval
         };
 
-        # XXX normalize if not normalized
+        my $nsch = Data::Sah::Normalize::normalize_schema($sch);
 
-        my ($type, $cs) = @{ $sch };
+        my ($type, $cs) = @$nsch;
         if ($type ne 'array') {
             $log->tracef("[comp][periscomp] can't complete element for non-array");
             return; # from eval
@@ -793,9 +793,9 @@ sub complete_arg_index {
             return; # from eval
         };
 
-        # XXX normalize if not normalized
+        my $nsch = Data::Sah::Normalize::normalize_schema($sch);
 
-        my ($type, $cs) = @{ $sch };
+        my ($type, $cs) = @$nsch;
         if ($type ne 'hash') {
             $log->tracef("[comp][periscomp] can't complete element index for non-hash");
             return; # from eval
@@ -814,6 +814,11 @@ sub complete_arg_index {
         }
         if ($cs->{allowed_keys}) {
             $keys{$_}++ for @{ $cs->{allowed_keys} };
+        }
+
+        # exclude keys that have been specified in collected args
+        for (keys %{$args{args}{$arg} // {}}) {
+            delete $keys{$_};
         }
 
         $fres = complete_hash_key(word => $word, hash => \%keys);
@@ -1036,15 +1041,19 @@ sub complete_cli_arg {
                             meta=>$meta, arg=>$sm->{arg}, args=>$gares->[2],
                             word=>$val, index=>$key,
                             extras=>$extras, %rargs);
-                        modify_answer(
-                            answer => $fres,
-                            prefix => "$key=",
-                        );
+                        modify_answer(answer=>$fres, prefix=>"$key=");
                         goto RETURN_RES;
                     } else {
                         $fres = complete_arg_index(
                             meta=>$meta, arg=>$sm->{arg}, args=>$gares->[2],
                             word=>$word, extras=>$extras, %rargs);
+                        modify_answer(answer=>$fres, suffix=>"=");
+                        $fres->{path_sep} = "=";
+                        # XXX actually not entirely correct, we want normal
+                        # escaping but without escaping "=", maybe we should
+                        # allow customizing, e.g. esc_mode=normal, dont_esc="="
+                        # (list of characters to not escape)
+                        $fres->{esc_mode} = "none";
                         goto RETURN_RES;
                     }
                 } else {
