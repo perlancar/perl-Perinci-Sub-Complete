@@ -1,5 +1,11 @@
 Revision history for Perinci-Sub-Complete
 
+0.89    2016-12-10 (PERLANCAR)
+
+	- Handle completion of hash option (--arg k1=v1 --arg k2=v2 ...). Grok
+          'index_completion' argument spec property.
+
+
 0.88    2016-10-29 (PERLANCAR)
 
 	- No functional changes.
