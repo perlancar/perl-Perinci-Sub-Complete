@@ -8,7 +8,7 @@ use strict;
 use warnings;
 use Log::Any::IfLOG '$log';
 
-use Complete::Util qw(hashify_answer complete_array_elem combine_answers);
+use Complete::Util qw(hashify_answer complete_array_elem complete_hash_key combine_answers modify_answer);
 use Complete::Common qw(:all);
 use Perinci::Sub::Util qw(gen_modified_sub);
 
@@ -17,6 +17,7 @@ our @ISA       = qw(Exporter);
 our @EXPORT_OK = qw(
                        complete_from_schema
                        complete_arg_val
+                       complete_arg_index
                        complete_arg_elem
                        complete_cli_arg
                );
@@ -484,7 +485,7 @@ gen_modified_sub(
     add_args     => {
         index => {
             summary => 'Index of element to complete',
-            schema  => [int => min => 0],
+            schema  => ['str*'],
         },
     },
 );
@@ -603,7 +604,7 @@ sub complete_arg_elem {
 
             $log->tracef("[comp][periscomp] declining");
             return; # from eval
-        }
+        } # if ($elcomp)
 
         my $sch = $arg_spec->{schema};
         unless ($sch) {
@@ -640,6 +641,194 @@ sub complete_arg_elem {
     $fres->{static} //= $static && $word eq '' ? 1:0;
   RETURN_RES:
     $log->tracef("[comp][periscomp] leaving complete_arg_elem, result=%s", $fres);
+    $fres;
+}
+
+$SPEC{complete_arg_index} = {
+    v => 1.1,
+    summary => 'Given argument name and function metadata, complete arg element index',
+    description => <<'_',
+
+This is only relevant for arguments which have `index_completion` property set
+(currently only `hash` type arguments). When that property is not set, will
+simply return undef.
+
+Completion routine will get `%args`, with the following keys:
+
+* `word` (str, the word to be completed)
+* `arg` (str, the argument name which value is currently being completed)
+* `args` (hash, the argument hash to the function, so far)
+
+as well as extra keys from `extras` (but these won't overwrite the above
+standard keys).
+
+Completion routine should return a completion answer structure (described in
+<pm:Complete>) which is either a hash or an array. The simplest form of answer
+is just to return an array of strings. Completion routine can also return undef
+to express declination.
+
+_
+    args => {
+        meta => {
+            summary => 'Rinci function metadata, must be normalized',
+            schema => 'hash*',
+            req => 1,
+        },
+        arg => {
+            summary => 'Argument name',
+            schema => 'str*',
+            req => 1,
+        },
+        word => {
+            summary => 'Word to be completed',
+            schema => ['str*', default => ''],
+        },
+        args => {
+            summary => 'Collected arguments so far, '.
+                'will be passed to completion routines',
+            schema  => 'hash',
+        },
+        extras => {
+            summary => 'Add extra arguments to completion routine',
+            schema  => 'hash',
+            description => <<'_',
+
+The keys from this `extras` hash will be merged into the final `%args` passed to
+completion routines. Note that standard keys like `word`, `cword`, and so on as
+described in the function description will not be overwritten by this.
+
+_
+        },
+
+        %common_args_riap,
+    },
+    result_naked => 1,
+    result => {
+        schema => 'array', # XXX of => str*
+    },
+};
+sub complete_arg_index {
+    require Data::Sah::Normalize;
+
+    my %args = @_;
+
+    my $fres;
+
+    $log->tracef("[comp][periscomp] entering complete_arg_index, arg=<%s>",
+                 $args{arg});
+
+    my $extras = $args{extras} // {};
+
+    my $ourextras = {arg=>$args{arg}, args=>$args{args}};
+
+    my $meta = $args{meta} or do {
+        $log->tracef("[comp][periscomp] meta is not supplied, declining");
+        goto RETURN_RES;
+    };
+    my $arg  = $args{arg} or do {
+        $log->tracef("[comp][periscomp] arg is not supplied, declining");
+        goto RETURN_RES;
+    };
+    my $word = $args{word} // '';
+
+    # XXX reject if meta's v is not 1.1
+
+    my $args_prop = $meta->{args} // {};
+    my $arg_spec = $args_prop->{$arg} or do {
+        $log->tracef("[comp][periscomp] arg '$arg' is not specified in meta, declining");
+        goto RETURN_RES;
+    };
+
+    my $static;
+    eval { # completion sub can die, etc.
+
+        my $idxcomp;
+      GET_IDXCOMP_ROUTINE:
+        {
+            $idxcomp = $arg_spec->{index_completion};
+            if ($idxcomp) {
+                $log->tracef("[comp][periscomp] using arg element index completion routine from 'index_completion' property");
+                last GET_IDXCOMP_ROUTINE;
+            }
+        } # GET_IDXCOMP_ROUTINE
+
+        if ($idxcomp) {
+            if (ref($idxcomp) eq 'CODE') {
+                $log->tracef("[comp][periscomp] invoking arg element index completion routine");
+                $fres = $idxcomp->(
+                    %$extras,
+                    %$ourextras,
+                    word=>$word);
+                return; # from eval
+            } elsif (ref($idxcomp) eq 'ARRAY') {
+                $log->tracef("[comp][periscomp] using array specified in arg element index completion routine: %s", $idxcomp);
+                $fres = complete_array_elem(array=>$idxcomp, word=>$word);
+                $static = $word eq '';
+            }
+
+            $log->tracef("[comp][periscomp] arg spec's 'index_completion' property is not a coderef or ".
+                             "arrayref");
+            if ($args{riap_client} && $args{riap_server_url}) {
+                $log->tracef("[comp][periscomp] trying to perform complete_arg_index request to Riap server");
+                my $res = $args{riap_client}->request(
+                    complete_arg_index => $args{riap_server_url},
+                    {(uri=>$args{riap_uri}) x !!defined($args{riap_uri}),
+                     arg=>$arg, args=>$args{args}, word=>$word},
+                );
+                if ($res->[0] != 200) {
+                    $log->tracef("[comp][periscomp] Riap request failed (%s), declining", $res);
+                    return; # from eval
+                }
+                $fres = $res->[2];
+                return; # from eval
+            }
+
+            $log->tracef("[comp][periscomp] declining");
+            return; # from eval
+        } # if ($idxcomp)
+
+        my $sch = $arg_spec->{schema};
+        unless ($sch) {
+            $log->tracef("[comp][periscomp] arg spec does not specify schema, declining");
+            return; # from eval
+        };
+
+        # XXX normalize if not normalized
+
+        my ($type, $cs) = @{ $sch };
+        if ($type ne 'hash') {
+            $log->tracef("[comp][periscomp] can't complete element index for non-hash");
+            return; # from eval
+        }
+
+        # collect known keys from some clauses
+        my %keys;
+        if ($cs->{keys}) {
+            $keys{$_}++ for keys %{ $cs->{keys} };
+        }
+        if ($cs->{indices}) {
+            $keys{$_}++ for keys %{ $cs->{indices} };
+        }
+        if ($cs->{req_keys}) {
+            $keys{$_}++ for @{ $cs->{req_keys} };
+        }
+        if ($cs->{allowed_keys}) {
+            $keys{$_}++ for @{ $cs->{allowed_keys} };
+        }
+
+        $fres = complete_hash_key(word => $word, hash => \%keys);
+
+    }; # eval
+    $log->debug("[comp][periscomp] completion died: $@") if $@;
+    unless ($fres) {
+        $log->tracef("[comp][periscomp] no index completion from metadata possible, declining");
+        goto RETURN_RES;
+    }
+
+    $fres = hashify_answer($fres);
+    $fres->{static} //= $static && $word eq '' ? 1:0;
+  RETURN_RES:
+    $log->tracef("[comp][periscomp] leaving complete_arg_index, result=%s", $fres);
     $fres;
 }
 
@@ -839,6 +1028,25 @@ sub complete_cli_arg {
                         word=>$word, index=>$cargs{nth}, # XXX correct index
                         extras=>$extras, %rargs);
                     goto RETURN_RES;
+                } elsif ($ospec =~ /\%$/) {
+                    if ($word =~ /(.*?)=(.*)/s) {
+                        my $key = $1;
+                        my $val = $2;
+                        $fres = complete_arg_elem(
+                            meta=>$meta, arg=>$sm->{arg}, args=>$gares->[2],
+                            word=>$val, index=>$key,
+                            extras=>$extras, %rargs);
+                        modify_answer(
+                            answer => $fres,
+                            prefix => "$key=",
+                        );
+                        goto RETURN_RES;
+                    } else {
+                        $fres = complete_arg_index(
+                            meta=>$meta, arg=>$sm->{arg}, args=>$gares->[2],
+                            word=>$word, extras=>$extras, %rargs);
+                        goto RETURN_RES;
+                    }
                 } else {
                     $fres = complete_arg_val(
                         meta=>$meta, arg=>$sm->{arg}, args=>$gares->[2],
