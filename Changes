@@ -1,5 +1,13 @@
 Revision history for Perinci-Sub-Complete
 
+0.90    2016-12-11 (PERLANCAR)
+
+	- No functional changes.
+
+	- Bump prereq version Perinci::Sub::Normalize 0.19 (to force update
+	  of Sah::Schema::rinci::function_meta to 1.1.82).
+
+
 0.89    2016-12-10 (PERLANCAR)
 
 	- Handle completion of hash option (--arg k1=v1 --arg k2=v2 ...). Grok
