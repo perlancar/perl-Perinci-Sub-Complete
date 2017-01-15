@@ -123,14 +123,26 @@ sub complete_from_schema {
     eval {
         if (my $xcomp = $cs->{'x.completion'}) {
             require Module::Installed::Tiny;
-            my $mod = "Perinci::Sub::XCompletion::$xcomp->[0]";
             my $comp;
-            if (Module::Installed::Tiny::module_installed($mod)) {
-                $log->tracef("[comp][periscomp] loading module %s ...", $mod);
-                my $mod_pm = $mod; $mod_pm =~ s!::!/!g; $mod_pm .= ".pm";
-                require $mod_pm;
-                my $fref = \&{"$mod\::gen_completion"};
-                $comp = $fref->(%{ $xcomp->[1] });
+            if (ref($xcomp) eq 'CODE') {
+                $comp = $xcomp;
+            } else {
+                my ($submod, $xcargs);
+                if (ref($xcomp) eq 'ARRAY') {
+                    $submod = $xcomp->[0];
+                    $xcargs = $xcomp->[1];
+                } else {
+                    $submod = $xcomp;
+                    $xcargs = {};
+                }
+                my $mod = "Perinci::Sub::XCompletion::$submod";
+                if (Module::Installed::Tiny::module_installed($mod)) {
+                    $log->tracef("[comp][periscomp] loading module %s ...", $mod);
+                    my $mod_pm = $mod; $mod_pm =~ s!::!/!g; $mod_pm .= ".pm";
+                    require $mod_pm;
+                    my $fref = \&{"$mod\::gen_completion"};
+                    $comp = $fref->(%$xcargs);
+                }
             }
             if ($comp) {
                 $log->tracef("[comp][periscomp] using arg completion routine from schema's 'x.completion' attribute");
@@ -387,14 +399,26 @@ sub complete_arg_val {
             }
             my $xcomp = $arg_spec->{'x.completion'};
             if ($xcomp) {
-                require Module::Installed::Tiny;
-                my $mod = "Perinci::Sub::XCompletion::$xcomp->[0]";
-                if (Module::Installed::Tiny::module_installed($mod)) {
-                    $log->tracef("[comp][periscomp] loading module %s ...", $mod);
-                    my $mod_pm = $mod; $mod_pm =~ s!::!/!g; $mod_pm .= ".pm";
-                    require $mod_pm;
-                    my $fref = \&{"$mod\::gen_completion"};
-                    $comp = $fref->(%{ $xcomp->[1] });
+                if (ref($xcomp) eq 'CODE') {
+                    $comp = $xcomp;
+                } else {
+                    my ($submod, $xcargs);
+                    if (ref($xcomp) eq 'ARRAY') {
+                        $submod = $xcomp->[0];
+                        $xcargs = $xcomp->[1];
+                    } else {
+                        $submod = $xcomp;
+                        $xcargs = {};
+                    }
+                    my $mod = "Perinci::Sub::XCompletion::$submod";
+                    require Module::Installed::Tiny;
+                    if (Module::Installed::Tiny::module_installed($mod)) {
+                        $log->tracef("[comp][periscomp] loading module %s ...", $mod);
+                        my $mod_pm = $mod; $mod_pm =~ s!::!/!g; $mod_pm .= ".pm";
+                        require $mod_pm;
+                        my $fref = \&{"$mod\::gen_completion"};
+                        $comp = $fref->(%$xcargs);
+                    }
                 }
                 if ($comp) {
                     $log->tracef("[comp][periscomp] using arg completion routine from arg spec's 'x.completion' attribute");
@@ -538,14 +562,26 @@ sub complete_arg_elem {
             }
             my $xelcomp = $arg_spec->{'x.element_completion'};
             if ($xelcomp) {
-               require Module::Installed::Tiny;
-                my $mod = "Perinci::Sub::XCompletion::$xelcomp->[0]";
-               if (Module::Installed::Tiny::module_installed($mod)) {
-                    $log->tracef("[comp][periscomp] loading module %s ...", $mod);
-                    my $mod_pm = $mod; $mod_pm =~ s!::!/!g; $mod_pm .= ".pm";
-                    require $mod_pm;
-                    my $fref = \&{"$mod\::gen_completion"};
-                    $elcomp = $fref->(%{ $xelcomp->[1] });
+                if (ref($xelcomp) eq 'CODE') {
+                    $elcomp = $xelcomp;
+                } else {
+                    my ($submod, $xcargs);
+                    if (ref($xelcomp) eq 'ARRAY') {
+                        $submod = $xelcomp->[0];
+                        $xcargs = $xelcomp->[1];
+                    } else {
+                        $submod = $xelcomp;
+                        $xcargs = {};
+                    }
+                    my $mod = "Perinci::Sub::XCompletion::$submod";
+                    require Module::Installed::Tiny;
+                    if (Module::Installed::Tiny::module_installed($mod)) {
+                        $log->tracef("[comp][periscomp] loading module %s ...", $mod);
+                        my $mod_pm = $mod; $mod_pm =~ s!::!/!g; $mod_pm .= ".pm";
+                        require $mod_pm;
+                        my $fref = \&{"$mod\::gen_completion"};
+                        $elcomp = $fref->(%$xcargs);
+                    }
                 }
                 if ($elcomp) {
                     $log->tracef("[comp][periscomp] using arg element completion routine from 'x.element_completion' attribute");
