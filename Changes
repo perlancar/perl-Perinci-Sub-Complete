@@ -1,3 +1,9 @@
+0.91    2017-01-15 (PERLANCAR)
+
+	- Handle x.completion being coderef or scalar, in addition to
+	  arrayref (Perinci::Sub::XCompletion 0.07).
+
+
 0.90    2016-12-11 (PERLANCAR)
 
 	- No functional changes.
