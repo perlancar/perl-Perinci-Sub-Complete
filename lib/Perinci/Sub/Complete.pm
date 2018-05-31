@@ -105,7 +105,10 @@ sub complete_from_schema {
         my $pkg = "Sah::SchemaR::$type";
         (my $pkg_pm = "$pkg.pm") =~ s!::!/!g;
         eval { require $pkg_pm; 1 };
-        goto RETURN_RES if $@;
+        if ($@) {
+            log_trace("[comp][periscomp] couldn't load schema module %s: %s, skipped", $pkg, $@);
+            goto RETURN_RES;
+        }
         my $rsch = ${"$pkg\::rschema"};
         $type = $rsch->[0];
         # let's just merge everything, for quick checking of clause
@@ -142,6 +145,8 @@ sub complete_from_schema {
                     require $mod_pm;
                     my $fref = \&{"$mod\::gen_completion"};
                     $comp = $fref->(%$xcargs);
+                } else {
+                    log_trace("[comp][periscomp] module %s not installed, skipped", $mod);
                 }
             }
             if ($comp) {
