@@ -144,9 +144,10 @@ sub complete_from_schema {
                     my $mod_pm = $mod; $mod_pm =~ s!::!/!g; $mod_pm .= ".pm";
                     require $mod_pm;
                     my $fref = \&{"$mod\::gen_completion"};
+                    log_trace("[comp][periscomp] invoking gen_completion() from %s ...", $mod);
                     $comp = $fref->(%$xcargs);
                 } else {
-                    log_trace("[comp][periscomp] module %s not installed, skipped", $mod);
+                    log_trace("[comp][periscomp] module %s is not installed, skipped", $mod);
                 }
             }
             if ($comp) {
@@ -422,7 +423,10 @@ sub complete_arg_val {
                         my $mod_pm = $mod; $mod_pm =~ s!::!/!g; $mod_pm .= ".pm";
                         require $mod_pm;
                         my $fref = \&{"$mod\::gen_completion"};
+                        log_trace("[comp][periscomp] invoking gen_completion() from %s ...", $mod);
                         $comp = $fref->(%$xcargs);
+                    } else {
+                        log_trace("[comp][periscomp] module %s is not installed, skipped", $mod);
                     }
                 }
                 if ($comp) {
@@ -439,10 +443,14 @@ sub complete_arg_val {
                     my $mod_pm = $mod; $mod_pm =~ s!::!/!g; $mod_pm .= ".pm";
                     require $mod_pm;
                     if (defined &{"$mod\::complete_arg_val"}) {
-                        log_trace("[comp][periscomp] using arg completion routine from complete_arg_val() from %s", $mod);
+                        log_trace("[comp][periscomp] invoking complete_arg_val() from %s ...", $mod);
                         $comp = \&{"$mod\::complete_arg_val"};
                         last GET_COMP_ROUTINE;
+                    } else {
+                        log_trace("[comp][periscomp] module %s doesn't define complete_arg_val(), skipped", $mod);
                     }
+                } else {
+                    log_trace("[comp][periscomp] module %s not installed, skipped", $mod);
                 }
             }
         } # GET_COMP_ROUTINE
@@ -585,7 +593,10 @@ sub complete_arg_elem {
                         my $mod_pm = $mod; $mod_pm =~ s!::!/!g; $mod_pm .= ".pm";
                         require $mod_pm;
                         my $fref = \&{"$mod\::gen_completion"};
+                        log_trace("[comp][periscomp] invoking gen_completion() from %s ...", $mod);
                         $elcomp = $fref->(%$xcargs);
+                    } else {
+                        log_trace("[comp][periscomp] module %s is not installed, skipped", $mod);
                     }
                 }
                 if ($elcomp) {
@@ -602,10 +613,14 @@ sub complete_arg_elem {
                     my $mod_pm = $mod; $mod_pm =~ s!::!/!g; $mod_pm .= ".pm";
                     require $mod_pm;
                     if (defined &{"$mod\::complete_arg_val"}) {
-                        log_trace("[comp][periscomp] using arg element completion routine from complete_arg_val() from %s", $mod);
+                        log_trace("[comp][periscomp] invoking complete_arg_val() from %s ...", $mod);
                         $elcomp = \&{"$mod\::complete_arg_val"};
                         last GET_ELCOMP_ROUTINE;
+                    } else {
+                        log_trace("[comp][periscomp] module %s doesn't defined complete_arg_val(), skipped", $mod);
                     }
+                } else {
+                    log_trace("[comp][periscomp] module %s is not installed, skipped", $mod);
                 }
             }
         } # GET_ELCOMP_ROUTINE
