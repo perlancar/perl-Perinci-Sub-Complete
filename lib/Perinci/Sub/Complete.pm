@@ -490,15 +490,34 @@ sub complete_arg_val {
             return; # from eval
         }
 
-        my $sch = $arg_spec->{schema};
-        unless ($sch) {
-            log_trace("[comp][periscomp] arg spec does not specify schema, declining");
-            return; # from eval
-        };
+        my $fres_from_arg_examples;
+      COMPLETE_FROM_ARG_EXAMPLES:
+        {
+            my $eg = $arg_spec->{examples};
+            unless ($eg) {
+                log_trace("[comp][periscomp] arg spec does not specify examples");
+                last COMPLETE_FROM_ARG_EXAMPLES;
+            }
+            $fres_from_arg_examples = complete_array_elem(
+                word=>$word, array=>[map {ref $_ eq 'HASH' ? $_->{value} : $_} @$eg]);
+        } # COMPLETE_FROM_ARG_EXAMPLES
 
-        # XXX normalize schema if not normalized
+        my $fres_from_schema;
+      COMPLETE_FROM_SCHEMA:
+        {
+            my $sch = $arg_spec->{schema};
+            unless ($sch) {
+                log_trace("[comp][periscomp] arg spec does not specify schema");
+                last COMPLETE_FROM_SCHEMA;
+            }
+            # XXX normalize schema if not normalized
+            $fres_from_schema = complete_from_schema(arg=>$arg, extras=>$extras, schema=>$sch, word=>$word);
+        } # COMPLETE_FROM_SCHEMA
 
-        $fres = complete_from_schema(arg=>$arg, extras=>$extras, schema=>$sch, word=>$word);
+        $fres = combine_answers(grep {defined} (
+            $fres_from_arg_examples,
+            $fres_from_schema,
+        ));
     };
     log_debug("[comp][periscomp] completion died: $@") if $@;
     unless ($fres) {
