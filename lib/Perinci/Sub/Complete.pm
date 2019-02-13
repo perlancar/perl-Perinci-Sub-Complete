@@ -144,7 +144,7 @@ sub complete_from_schema {
                     my $mod_pm = $mod; $mod_pm =~ s!::!/!g; $mod_pm .= ".pm";
                     require $mod_pm;
                     my $fref = \&{"$mod\::gen_completion"};
-                    log_trace("[comp][periscomp] invoking gen_completion() from %s ...", $mod);
+                    log_trace("[comp][periscomp] invoking %s's gen_completion(%s) ...", $mod, $xcargs);
                     $comp = $fref->(%$xcargs);
                 } else {
                     log_trace("[comp][periscomp] module %s is not installed, skipped", $mod);
