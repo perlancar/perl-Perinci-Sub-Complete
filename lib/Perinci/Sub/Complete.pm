@@ -1180,12 +1180,12 @@ sub complete_cli_arg {
             my $pos = $cargs{argpos};
             my $fasa = $args{func_arg_starts_at} // 0;
 
-            # find if there is a non-greedy argument with the exact position
+            # find if there is a non-slurpy argument with the exact position
             for my $an (keys %$args_prop) {
                 my $arg_spec = $args_prop->{$an};
-                next unless !$arg_spec->{greedy} &&
+                next unless !($arg_spec->{slurpy} // $arg_spec->{greedy}) &&
                     defined($arg_spec->{pos}) && $arg_spec->{pos} == $pos - $fasa;
-                log_trace("[comp][periscomp] this argument position is for non-greedy function argument <%s>", $an);
+                log_trace("[comp][periscomp] this argument position is for non-slurpy function argument <%s>", $an);
                 $cargs{arg} = $an;
                 if ($comp) {
                     log_trace("[comp][periscomp] invoking routine supplied from 'completion' argument");
@@ -1203,18 +1203,18 @@ sub complete_cli_arg {
                 goto RETURN_RES;
             }
 
-            # find if there is a greedy argument which takes elements at that
+            # find if there is a slurpy argument which takes elements at that
             # position
             for my $an (sort {
                 ($args_prop->{$b}{pos} // 9999) <=> ($args_prop->{$a}{pos} // 9999)
             } keys %$args_prop) {
                 my $arg_spec = $args_prop->{$an};
-                next unless $arg_spec->{greedy} &&
+                next unless ($arg_spec->{slurpy} // $arg_spec->{greedy}) &&
                     defined($arg_spec->{pos}) && $arg_spec->{pos} <= $pos - $fasa;
                 my $index = $pos - $fasa - $arg_spec->{pos};
                 $cargs{arg} = $an;
                 $cargs{index} = $index;
-                log_trace("[comp][periscomp] this position is for greedy function argument <%s>'s element[%d]", $an, $index);
+                log_trace("[comp][periscomp] this position is for slurpy function argument <%s>'s element[%d]", $an, $index);
                 if ($comp) {
                     log_trace("[comp][periscomp] invoking routine supplied from 'completion' argument");
                     my $res;
