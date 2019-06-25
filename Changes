@@ -1,3 +1,10 @@
+0.934   2019-06-25 (PERLANCAR)
+
+	- Pass summaries (from Perinci::Sub::To::CLIDocData's
+	  gen_cli_doc_data_from_meta() to
+	  Complete::Getopt::Long::complete_cli_arg().
+
+
 0.933   2019-04-15 (PERLANCAR)
 
 	- Update to Rinci 1.1.88 (slurpy).
