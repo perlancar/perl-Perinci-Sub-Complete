@@ -37,40 +37,18 @@ test_complete(
     name        => 'arg name 2 (dash)',
     args        => {meta=>$meta},
     comp_line0  => 'CMD -^',
-    result      => {
-        words=>[
-            {word=>'--a1'  , summary=>'Array of strings, where the string has "in" schema clause'},
-            {word=>'--a2'  , summary=>'Array with element_completion routine that generate random letter'},
-            {word=>'--a3'  , summary=>'Array with element_completion routine that dies'},
-            {word=>'--arg0', summary=>'Argument without any schema'},
-            {word=>'--f0'  , summary=>'Float with just "float" schema defined'},
-            {word=>'--f1'  , summary=>'Float with xmin/xmax on the schema'},
-            {word=>'--h1'  , summary=>'Hash with "keys" and "allowed_keys" schema clauses and "element_completion" property'},
-            {word=>'--h2'  , summary=>'Hash with "element_completion" as well as "index_completion" properties'},
-            {word=>'--help', summary=>undef},
-            {word=>'--i0'  , summary=>'Integer with just "int" schema defined'},
-            {word=>'--i1'  , summary=>'Integer with min/xmax on the schema'},
-            {word=>'--i2'  , summary=>'Integer with large range min/max on the schema'},
-            {word=>'--s1'  , summary=>'String with possible values in "in" schema clause'},
-            {word=>'--s1b' , summary=>'String with possible values in "in" schema clause, contains special characters'},
-            {word=>'--s2'  , summary=>'String with completion routine that generate random letter'},
-            {word=>'--s3'  , summary=>'String with completion routine that dies'},
-            {word=>'-?'    , summary=>undef},
-            {word=>'-h'    , summary=>undef},
-        ],
-        esc_mode=>'option',
-    },
+    result      => {words=>
+                        [qw(--a1 --a2 --a3 --arg0 --f0 --f1 --h1 --h2 --help
+                            --i0 --i1 --i2 --s1 --s1b --s2 --s3 -? -h)],
+                    esc_mode=>'option'},
 );
 test_complete(
     name        => 'arg name 3 (sole completion)',
     args        => {meta=>$meta},
     comp_line0  => 'CMD --a1^',
-    result      => {
-        words=>[
-            {word=>'--a1'  , summary=>'Array of strings, where the string has "in" schema clause'},
-        ],
-        esc_mode=>'option',
-    },
+    result      => {words=>
+                        [qw(--a1)],
+                    esc_mode=>'option'},
 );
 test_complete(
     name        => 'arg name 3 (unknown option)',
@@ -103,60 +81,20 @@ test_complete(
     name        => 'arg value, pos',
     args        => {meta=>$meta},
     comp_line0  => 'CMD ^',
-    result      => {
-        static=>1,
-        words=>[
-            {word=>'--a1'  , summary=>'Array of strings, where the string has "in" schema clause'},
-            {word=>'--a2'  , summary=>'Array with element_completion routine that generate random letter'},
-            {word=>'--a3'  , summary=>'Array with element_completion routine that dies'},
-            {word=>'--arg0', summary=>'Argument without any schema'},
-            {word=>'--f0'  , summary=>'Float with just "float" schema defined'},
-            {word=>'--f1'  , summary=>'Float with xmin/xmax on the schema'},
-            {word=>'--h1'  , summary=>'Hash with "keys" and "allowed_keys" schema clauses and "element_completion" property'},
-            {word=>'--h2'  , summary=>'Hash with "element_completion" as well as "index_completion" properties'},
-            {word=>'--help', summary=>undef},
-            {word=>'--i0'  , summary=>'Integer with just "int" schema defined'},
-            {word=>'--i1'  , summary=>'Integer with min/xmax on the schema'},
-            {word=>'--i2'  , summary=>'Integer with large range min/max on the schema'},
-            {word=>'--s1'  , summary=>'String with possible values in "in" schema clause'},
-            {word=>'--s1b' , summary=>'String with possible values in "in" schema clause, contains special characters'},
-            {word=>'--s2'  , summary=>'String with completion routine that generate random letter'},
-            {word=>'--s3'  , summary=>'String with completion routine that dies'},
-            {word=>'-?'    , summary=>undef},
-            {word=>'-h'    , summary=>undef},
-            sort 1..99,
-        ],
-    },
+    result      => {static=>1, words=>[sort(
+        qw(--a1 --a2 --a3 --arg0 --f0 --f1 --h1 --h2 --help --i0 --i1
+           --i2 --s1 --s1b --s2 --s3 -? -h),
+        1..99)]},
 );
 test_complete(
     name        => 'arg value, pos + greedy',
     args        => {meta=>$meta},
     comp_line0  => 'CMD 2 ^',
-    result      => {
-        static=>1,
-        words=>[
-            {word=>'--a1'  , summary=>'Array of strings, where the string has "in" schema clause'},
-            {word=>'--a2'  , summary=>'Array with element_completion routine that generate random letter'},
-            {word=>'--a3'  , summary=>'Array with element_completion routine that dies'},
-            {word=>'--arg0', summary=>'Argument without any schema'},
-            {word=>'--f0'  , summary=>'Float with just "float" schema defined'},
-            {word=>'--f1'  , summary=>'Float with xmin/xmax on the schema'},
-            {word=>'--h1'  , summary=>'Hash with "keys" and "allowed_keys" schema clauses and "element_completion" property'},
-            {word=>'--h2'  , summary=>'Hash with "element_completion" as well as "index_completion" properties'},
-            {word=>'--help', summary=>undef},
-            {word=>'--i0'  , summary=>'Integer with just "int" schema defined'},
-            {word=>'--i1'  , summary=>'Integer with min/xmax on the schema'},
-            {word=>'--i2'  , summary=>'Integer with large range min/max on the schema'},
-            {word=>'--s1'  , summary=>'String with possible values in "in" schema clause'},
-            {word=>'--s1b' , summary=>'String with possible values in "in" schema clause, contains special characters'},
-            {word=>'--s2'  , summary=>'String with completion routine that generate random letter'},
-            {word=>'--s3'  , summary=>'String with completion routine that dies'},
-            {word=>'-?'    , summary=>undef},
-            {word=>'-h'    , summary=>undef},
-            'apple', 'apricot', 'banana', 'grape', 'grapefruit', 'green grape',
-            'red date', 'red grape',
-        ],
-    },
+    result      => {static=>1, words=>[
+        qw(--a1 --a2 --a3 --arg0 --f0 --f1 --h1 --h2 --help --i0 --i1
+           --i2 --s1 --s1b --s2 --s3 -? -h),
+        'apple', 'apricot', 'banana', 'grape', 'grapefruit', 'green grape',
+        'red date', 'red grape']},
 );
 
 test_complete(

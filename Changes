@@ -1,3 +1,9 @@
+0.935   2019-06-26 (PERLANCAR)
+
+	- Update to Complete::Getopt::Long 0.471, no longer uses
+	  Perinci::Sub::To::CLIDocData.
+
+
 0.934   2019-06-25 (PERLANCAR)
 
 	- Pass summaries (from Perinci::Sub::To::CLIDocData's
