@@ -1056,6 +1056,7 @@ sub complete_cli_arg {
     );
     die "Can't generate getopt spec from meta: $ggls_res->[0] - $ggls_res->[1]"
         unless $ggls_res->[0] == 200;
+    $extras->{ggls_res} = $ggls_res;
     my $gospec = $ggls_res->[2];
     my $specmeta = $ggls_res->[3]{'func.specmeta'};
 
@@ -1253,33 +1254,8 @@ sub complete_cli_arg {
         $fres;
     }; # completion routine
 
-    # we need option's summaries
-    require Perinci::Sub::To::CLIDocData;
-    my $summaries;
-    my $has_summaries;
-    my $gcdd_res = Perinci::Sub::To::CLIDocData::gen_cli_doc_data_from_meta(
-        meta         => $meta, #meta_is_normalized => 1,
-        common_opts  => $copts,
-        per_arg_json => $args{per_arg_json},
-        per_arg_yaml => $args{per_arg_yaml},
-        ggls_res     => $ggls_res,
-    );
-    if ($gcdd_res->[0] == 200) {
-        my $opts = $gcdd_res->[2]{opts};
-        $summaries = {};
-        for (keys %$opts) {
-            my $summ = $opts->{$_}{summary} // '';
-            (my $stripped = $_) =~ s/^-+//;
-            $summaries->{$stripped} = $summ;
-            $has_summaries = 1 if length $summ;
-        };
-    } else {
-        log_trace("[comp][periscomp] couldn't gen_cli_doc_data_from_meta: $gcdd_res->[0] - $gcdd_res->[1]");
-    }
-
     $fres = Complete::Getopt::Long::complete_cli_arg(
         getopt_spec => $gospec,
-        (summaries   => $summaries) x !!$has_summaries,
         words       => $words,
         cword       => $cword,
         completion  => $compgl_comp,
