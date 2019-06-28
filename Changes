@@ -1,3 +1,10 @@
+0.936   2019-06-28  Released-By: PERLANCAR; Urgency: low
+
+	- No functional changes.
+
+	- [dist] Try out new release note style in Changes.
+
+
 0.935   2019-06-26  Released-By: PERLANCAR
 
 	- Update to Complete::Getopt::Long 0.471, no longer uses
