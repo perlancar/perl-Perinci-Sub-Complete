@@ -172,7 +172,7 @@ sub complete_from_schema {
             for my $i (0..$#{ $cs->{in} }) {
                 next if ref $cs->{in}[$i];
                 push @$words    , $cs->{in}[$i];
-                push @$summaries, $cs->{'x.in.summaries'}[$i] if $cs->{'x.in.summaries'};
+                push @$summaries, $cs->{'x.in.summaries'} ? $cs->{'x.in.summaries'}[$i] : undef;
             }
             $static++;
             return; # from eval. there should not be any other value
@@ -182,6 +182,7 @@ sub complete_from_schema {
             # normalize schemas in 'of' clauses, etc.
             require Data::Sah::Normalize;
             if ($cs->{of} && @{ $cs->{of} }) {
+
                 $fres = combine_answers(
                     grep { defined } map {
                         complete_from_schema(
@@ -312,6 +313,10 @@ sub complete_from_schema {
                         push @$summaries, undef;
                     }
                 }
+                my @orders = sort { $words->[$a] cmp $words->[$b] }
+                    0..$#{$words};
+                my $words     = [map {$words->[$_]    } @orders];
+                my $summaries = [map {$summaries->[$_]} @orders];
             }
             return; # from eval
         }
