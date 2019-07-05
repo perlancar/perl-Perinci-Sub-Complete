@@ -177,6 +177,16 @@ sub complete_from_schema {
             $static++;
             return; # from eval. there should not be any other value
         }
+        if ($cs->{'x.examples'}) {
+            log_trace("[comp][periscomp] adding completion from schema's 'x.examples' attribute");
+            for my $i (0..$#{ $cs->{'x.examples'} }) {
+                next if ref $cs->{'x.examples'}[$i];
+                push @$words    , $cs->{'x.examples'}[$i];
+                push @$summaries, $cs->{'x.examples.summaries'} ? $cs->{'x.examples.summaries'}[$i] : undef;
+            }
+            $static++;
+            return; # from eval. there should not be any other value
+        }
         if ($type eq 'any') {
             # because currently Data::Sah::Normalize doesn't recursively
             # normalize schemas in 'of' clauses, etc.
