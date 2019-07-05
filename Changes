@@ -1,3 +1,8 @@
+0.938   2019-07-06  Released-By: PERLANCAR; Urgency: medium
+
+	- Add completion from schema's x.examples attribute.
+
+
 0.937   2019-06-29  Released-By: PERLANCAR; Urgency: low
 
 	- Get summaries from schema's x.in.summaries attribute. To try this out,
