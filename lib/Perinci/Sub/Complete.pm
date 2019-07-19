@@ -568,7 +568,7 @@ sub complete_arg_val {
             }
             $fres_from_arg_examples = complete_array_elem(
                 word=>$word, array=>\@array, summaries=>\@summaries);
-            # static++?
+            $static //= 1;
         } # COMPLETE_FROM_ARG_EXAMPLES
 
         my $fres_from_schema;
@@ -581,6 +581,7 @@ sub complete_arg_val {
             }
             # XXX normalize schema if not normalized
             $fres_from_schema = complete_from_schema(arg=>$arg, extras=>$extras, schema=>$sch, word=>$word);
+            $static //= 1;
         } # COMPLETE_FROM_SCHEMA
 
         $fres = combine_answers(grep {defined} (
