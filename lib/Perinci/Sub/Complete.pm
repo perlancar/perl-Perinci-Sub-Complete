@@ -177,12 +177,20 @@ sub complete_from_schema {
             $static++;
             return; # from eval. there should not be any other value
         }
-        if ($cs->{'x.examples'}) {
-            log_trace("[comp][periscomp] adding completion from schema's 'x.examples' attribute");
-            for my $i (0..$#{ $cs->{'x.examples'} }) {
-                next if ref $cs->{'x.examples'}[$i];
-                push @$words    , $cs->{'x.examples'}[$i];
-                push @$summaries, $cs->{'x.examples.summaries'} ? $cs->{'x.examples.summaries'}[$i] : undef;
+        if ($cs->{'examples'}) {
+            log_trace("[comp][periscomp] adding completion from schema's 'examples' clause");
+            for my $eg (@{ $cs->{'examples'} }) {
+                if (ref $eg eq 'HASH') {
+                    next unless defined $eg->{value};
+                    next if ref $eg->{value};
+                    push @$words, $eg->{value};
+                    push @$summaries, $eg->{summary};
+                } else {
+                    next unless defined $eg;
+                    next if ref $eg;
+                    push @$words, $eg;
+                    push @$summaries, undef;
+                }
             }
             $static++;
             return; # from eval. there should not be any other value
@@ -538,13 +546,29 @@ sub complete_arg_val {
         my $fres_from_arg_examples;
       COMPLETE_FROM_ARG_EXAMPLES:
         {
-            my $eg = $arg_spec->{examples};
-            unless ($eg) {
+            my $egs = $arg_spec->{examples};
+            unless ($egs) {
                 log_trace("[comp][periscomp] arg spec does not specify examples");
                 last COMPLETE_FROM_ARG_EXAMPLES;
             }
+            my @array;
+            my @summaries;
+            for my $eg (@$egs) {
+                if (ref $eg eq 'HASH') {
+                    next unless defined $eg->{value};
+                    next if ref $eg->{value};
+                    push @array, $eg->{value};
+                    push @summaries, $eg->{summary};
+                } else {
+                    next unless defined $eg;
+                    next if ref $eg;
+                    push @array, $eg;
+                    push @summaries, undef;
+                }
+            }
             $fres_from_arg_examples = complete_array_elem(
-                word=>$word, array=>[map {ref $_ eq 'HASH' ? $_->{value} : $_} @$eg]);
+                word=>$word, array=>\@array, summaries=>\@summaries);
+            # static++?
         } # COMPLETE_FROM_ARG_EXAMPLES
 
         my $fres_from_schema;

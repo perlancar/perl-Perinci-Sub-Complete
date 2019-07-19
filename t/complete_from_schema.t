@@ -26,10 +26,10 @@ subtest "in clause" => sub {
               {words=>[map { +{word=>$_, summary=>undef} } sort qw/bar baz/], static=>1});
 };
 
-subtest "x.examples attribute" => sub {
-    my $sch = [str => {'x.examples'=>[qw/bar baz/]}, {}];
+subtest "examples clause" => sub {
+    my $sch = [str => {'examples'=>['bar',{value=>'baz', summary=>'foo'}]}, {}];
     is_deeply(complete_from_schema(schema=>$sch, word=>''),
-              {words=>[map { +{word=>$_, summary=>undef} } sort qw/bar baz/], static=>1});
+              {words=>[{word=>'bar', summary=>undef},{word=>'baz', summary=>'foo'}], static=>1});
 };
 
 subtest int => sub {
