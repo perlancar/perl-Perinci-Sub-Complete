@@ -67,6 +67,7 @@ _
     },
 );
 
+# backward compatibility, will be removed in the future
 *complete_from_schema = \&Complete::Sah::complete_from_schema;
 $SPEC{complete_from_schema} = $Complete::Sah::SPEC{complete_from_schema};
 
