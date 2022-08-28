@@ -1,3 +1,9 @@
+0.945   2022-08-28  Released-By: PERLANCAR; Urgency: medium
+
+        - Re-release 0.944 (2022-08-28). Currently still unmerged with CPAN
+          version of 0.944.
+
+
 0.944   2022-08-28  Released-By: PERLANCAR; Urgency: medium
 
         - Force updating dependency Complete::Getopt::Long 0.481.
