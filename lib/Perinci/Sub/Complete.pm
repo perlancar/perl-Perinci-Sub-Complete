@@ -1,10 +1,5 @@
 package Perinci::Sub::Complete;
 
-# AUTHORITY
-# DATE
-# DIST
-# VERSION
-
 use 5.010001;
 use strict;
 use warnings;
@@ -13,10 +8,14 @@ use Log::ger;
 use Complete::Common qw(:all);
 use Complete::Sah;
 use Complete::Util qw(hashify_answer complete_array_elem complete_hash_key combine_answers modify_answer);
+use Exporter 'import';
 use Perinci::Sub::Util qw(gen_modified_sub);
 
-require Exporter;
-our @ISA       = qw(Exporter);
+# AUTHORITY
+# DATE
+# DIST
+# VERSION
+
 our @EXPORT_OK = qw(
                        complete_from_schema
                        complete_arg_val
