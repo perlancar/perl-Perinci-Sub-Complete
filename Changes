@@ -1,3 +1,8 @@
+0.946   2022-09-02  Released-By: PERLANCAR; Urgency: high
+
+        - Merge releases 0.945 and CPAN version of 0.944.
+
+
 0.945   2022-08-28  Released-By: PERLANCAR; Urgency: medium
 
         - Re-release 0.944 (2022-08-28). Currently still unmerged with CPAN
